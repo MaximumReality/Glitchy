@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MaximumReality | Sprite Matrix</title>
+    <style>
+        :root {
+            --neon-blue: #00f2ff;
+            --neon-pink: #ff00ff;
+            --bg-dark: #0a0a0a;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: white;
+            font-family: 'Courier New', Courier, monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        h1 {
+            color: var(--neon-blue);
+            text-shadow: 0 0 10px var(--neon-blue);
+            letter-spacing: 5px;
+            text-transform: uppercase;
+        }
+
+        .sprite-display {
+            display: flex;
+            gap: 40px;
+            margin-top: 50px;
+        }
+
+        .character-card {
+            text-align: center;
+            border: 2px solid #333;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            transition: all 0.3s ease;
+        }
+
+        .character-card:hover {
+            border-color: var(--neon-pink);
+            box-shadow: 0 0 20px var(--neon-pink);
+        }
+
+        img {
+            width: 250px;
+            height: 250px;
+            object-fit: contain;
+            /* Placeholder styling until PNGs are added */
+            background: #1a1a1a; 
+            display: block;
+        }
+
+        .glitch-btn {
+            margin-top: 40px;
+            padding: 15px 30px;
+            background: transparent;
+            color: var(--neon-blue);
+            border: 2px solid var(--neon-blue);
+            cursor: pointer;
+            font-weight: bold;
+            text-transform: uppercase;
+            transition: 0.3s;
+        }
+
+        .glitch-btn:hover {
+            background: var(--neon-blue);
+            color: black;
+            box-shadow: 0 0 15px var(--neon-blue);
+        }
+    </style>
+</head>
+<body>
+
+    <h1>MaximumReality.xyz</h1>
+    <p>Asset Matrix: Sprite Randomizer v1.0</p>
+
+    <div class="sprite-display">
+        <div class="character-card">
+            <img id="azul-sprite" src="placeholder_azul.png" alt="Azul">
+            <h3 style="color: var(--neon-blue);">Azul</h3>
+        </div>
+
+        <div class="character-card">
+            <img id="mochkil-sprite" src="placeholder_mochkil.png" alt="Mochkil">
+            <h3 style="color: var(--neon-pink);">Mochkil</h3>
+        </div>
+    </div>
+
+    <button class="glitch-btn" onclick="randomizeSprites()">Trigger Reality Shift</button>
+
+    <script>
+        // ADD YOUR PNG FILENAMES TO THESE ARRAYS LATER
+        const azulPool = [
+            'azul_pixel.png', 
+            'azul_cyber.png', 
+            'azul_hacker.png'
+        ];
+
+        const mochkilPool = [
+            'mochkil_chef.png', 
+            'mochkil_wildcard.png', 
+            'mochkil_pixel.png'
+        ];
+
+        function randomizeSprites() {
+            const azulImg = document.getElementById('azul-sprite');
+            const mochkilImg = document.getElementById('mochkil-sprite');
+
+            // Pick random assets
+            const newAzul = azulPool[Math.floor(Math.random() * azulPool.length)];
+            const newMochkil = mochkilPool[Math.floor(Math.random() * mochkilPool.length)];
+
+            // Set the sources
+            azulImg.src = newAzul;
+            mochkilImg.src = newMochkil;
+
+            console.log("Reality Shifted:", newAzul, newMochkil);
+        }
+
+        // Run once on load to start with random sprites
+        window.onload = randomizeSprites;
+    </script>
+</body>
+</html>
