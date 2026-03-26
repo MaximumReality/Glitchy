@@ -12,83 +12,66 @@
 </head>
 <body>
 <script>
-   // --- New Variables for Obstacles ---
-const obstacles = [];
-const obstacleSpeed = 5;
-let score = 0;
+    // 1. Setup the App (Optimized for iPhone 14 Pro Max screen)
+    const app = new PIXI.Application({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x050505,
+        antialias: true
+    });
+    document.body.appendChild(app.view);
 
-// Create a Score Text (Neon Style)
-const scoreStyle = new PIXI.TextStyle({
-    fill: "#00ffff",
-    fontFamily: "Courier New",
-    fontSize: 24,
-    fontWeight: "bold",
-    dropShadow: true,
-    dropShadowColor: "#ff00ff",
-    dropShadowBlur: 4,
-});
-const scoreText = new PIXI.Text('STABILITY: 100%', scoreStyle);
-scoreText.x = 20;
-scoreText.y = 40;
-app.stage.addChild(scoreText);
+    // 2. The "Quantum Particle" (Player)
+    let isSuperpositioned = false;
+    const playerA = new PIXI.Graphics();
+    const playerB = new PIXI.Graphics();
 
-// --- Obstacle Factory ---
-function createObstacle() {
-    const obstacle = new PIXI.Graphics();
-    obstacle.beginFill(0xff3333); // Red = Danger/Collapse
-    obstacle.drawRect(-40, -10, 80, 20);
-    obstacle.endFill();
+    function drawParticle(graphics, color) {
+        graphics.clear();
+        graphics.beginFill(color);
+        graphics.drawCircle(0, 0, 20);
+        graphics.endFill();
+        // Add a neon glow effect
+        graphics.filters = [new PIXI.BlurFilter(2)];
+    }
+
+    drawParticle(playerA, 0x00ffff); // Cyan
+    drawParticle(playerB, 0xff00ff); // Magenta (Cyberpunk vibes)
     
-    obstacle.x = app.screen.width / 2;
-    obstacle.y = -50;
-    
-    app.stage.addChild(obstacle);
-    obstacles.push(obstacle);
-}
+    playerA.x = app.screen.width / 2;
+    playerA.y = app.screen.height - 100;
+    playerB.alpha = 0; // Hidden until superposition
 
-// Spawn an obstacle every 1.5 seconds
-setInterval(createObstacle, 1500);
+    app.stage.addChild(playerA, playerB);
 
-// --- Updated Game Loop ---
-app.ticker.add((delta) => {
-    // 1. Handle Superposition Logic (Existing)
-    if (isSuperpositioned) {
-        if (playerA.x > 50) playerA.x -= 5 * delta;
-        if (playerB.x < app.screen.width - 50) playerB.x += 5 * delta;
-        playerB.alpha = 0.8;
-    } else {
-        playerA.x += (app.screen.width / 2 - playerA.x) * 0.1;
-        playerB.x = playerA.x;
+    // 3. Touch Controls
+    app.view.addEventListener('pointerdown', () => {
+        isSuperpositioned = true;
+        playerB.alpha = 0.6;
+    });
+
+    app.view.addEventListener('pointerup', () => {
+        isSuperpositioned = false;
         playerB.alpha = 0;
-    }
+    });
 
-    // 2. Obstacle Movement & Collision
-    for (let i = obstacles.length - 1; i >= 0; i--) {
-        const ob = obstacles[i];
-        ob.y += obstacleSpeed * delta;
-
-        // Simple AABB Collision Check
-        const hitA = Math.abs(ob.x - playerA.x) < 40 && Math.abs(ob.y - playerA.y) < 20;
-        const hitB = isSuperpositioned && Math.abs(ob.x - playerB.x) < 40 && Math.abs(ob.y - playerB.y) < 20;
-
-        if (hitA || hitB) {
-            // WAVE FUNCTION COLLAPSE! 
-            ob.tint = 0xffffff; 
-            score -= 1;
-            scoreText.text = `STABILITY: ${Math.max(0, 100 + score)}%`;
-            scoreText.style.fill = "#ff0000";
+    // 4. Game Loop
+    app.ticker.add((delta) => {
+        if (isSuperpositioned) {
+            // Particles drift apart in superposition
+            playerA.x -= 2 * delta;
+            playerB.x += 2 * delta;
+            playerB.y = playerA.y;
         } else {
-            scoreText.style.fill = "#00ffff";
+            // Collapse back to center
+            playerA.x += (app.screen.width / 2 - playerA.x) * 0.1;
+            playerB.x = playerA.x;
         }
 
-        // Cleanup obstacles that leave the screen
-        if (ob.y > app.screen.height + 50) {
-            app.stage.removeChild(ob);
-            obstacles.splice(i, 1);
-        }
-    }
-});
-
+        // Screen wrap or bounds check
+        if (playerA.x < 0) playerA.x = app.screen.width;
+        if (playerB.x > app.screen.width) playerB.x = 0;
+    });
 </script>
 </body>
 </html>
