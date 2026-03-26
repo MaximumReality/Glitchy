@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quantum Quest: Superposition</title>
+    <script src="https://pixijs.download/v7.x/pixi.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<script>
+    // 1. Setup the App (Optimized for iPhone 14 Pro Max screen)
+    const app = new PIXI.Application({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x050505,
+        antialias: true
+    });
+    document.body.appendChild(app.view);
+
+    // 2. The "Quantum Particle" (Player)
+    let isSuperpositioned = false;
+    const playerA = new PIXI.Graphics();
+    const playerB = new PIXI.Graphics();
+
+    function drawParticle(graphics, color) {
+        graphics.clear();
+        graphics.beginFill(color);
+        graphics.drawCircle(0, 0, 20);
+        graphics.endFill();
+        // Add a neon glow effect
+        graphics.filters = [new PIXI.BlurFilter(2)];
+    }
+
+    drawParticle(playerA, 0x00ffff); // Cyan
+    drawParticle(playerB, 0xff00ff); // Magenta (Cyberpunk vibes)
+    
+    playerA.x = app.screen.width / 2;
+    playerA.y = app.screen.height - 100;
+    playerB.alpha = 0; // Hidden until superposition
+
+    app.stage.addChild(playerA, playerB);
+
+    // 3. Touch Controls
+    app.view.addEventListener('pointerdown', () => {
+        isSuperpositioned = true;
+        playerB.alpha = 0.6;
+    });
+
+    app.view.addEventListener('pointerup', () => {
+        isSuperpositioned = false;
+        playerB.alpha = 0;
+    });
+
+    // 4. Game Loop
+    app.ticker.add((delta) => {
+        if (isSuperpositioned) {
+            // Particles drift apart in superposition
+            playerA.x -= 2 * delta;
+            playerB.x += 2 * delta;
+            playerB.y = playerA.y;
+        } else {
+            // Collapse back to center
+            playerA.x += (app.screen.width / 2 - playerA.x) * 0.1;
+            playerB.x = playerA.x;
+        }
+
+        // Screen wrap or bounds check
+        if (playerA.x < 0) playerA.x = app.screen.width;
+        if (playerB.x > app.screen.width) playerB.x = 0;
+    });
+</script>
+</body>
+</html>
