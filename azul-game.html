@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Quantum Quest: Azul's Glitch</title>
+    <script src="https://pixijs.download/v7.x/pixi.min.js"></script>
+    <style>
+        body { margin: 0; background: #000; overflow: hidden; touch-action: none; }
+        canvas { display: block; }
+    </style>
+</head>
+<body>
+<script>
+    const app = new PIXI.Application({
+        width: window.innerWidth,
+        height: window.innerHeight,
+        backgroundColor: 0x000000,
+        antialias: true
+    });
+    document.body.appendChild(app.view);
+
+    // 1. Load Glitchy Azul
+    const azulUrl = "https://maximumreality.github.io/Glitchy/glitchy-azul.png";
+    const texture = PIXI.Texture.from(azulUrl);
+
+    const playerA = new PIXI.Sprite(texture);
+    const playerB = new PIXI.Sprite(texture);
+
+    // Setup Sprites
+    [playerA, playerB].forEach(p => {
+        p.anchor.set(0.5);
+        p.scale.set(0.4); // Adjust scale for iPhone screen
+        p.x = app.screen.width / 2;
+        p.y = app.screen.height - 150;
+        app.stage.addChild(p);
+    });
+
+    playerB.alpha = 0;
+    playerB.tint = 0xff00ff; // Magenta tint for the "ghost" state
+
+    // 2. Obstacle Logic
+    const obstacles = [];
+    function createObstacle() {
+        const ob = new PIXI.Graphics();
+        ob.beginFill(0x00ffff); // Cyan blocks
+        ob.drawRect(-50, -10, 100, 20);
+        ob.endFill();
+        ob.x = app.screen.width / 2;
+        ob.y = -50;
+        app.stage.addChild(ob);
+        obstacles.push(ob);
+    }
+    setInterval(createObstacle, 1800);
+
+    // 3. Interaction
+    let isSuperpositioned = false;
+    app.view.addEventListener('pointerdown', () => isSuperpositioned = true);
+    app.view.addEventListener('pointerup', () => isSuperpositioned = false);
+
+    // 4. Game Loop
+    app.ticker.add((delta) => {
+        if (isSuperpositioned) {
+            // Split and Flicker
+            playerA.x -= 7 * delta;
+            playerB.x += 7 * delta;
+            playerB.alpha = 0.6 + Math.random() * 0.2; // Glitch flicker
+            playerA.tint = 0x00ffff; // Cyan tint while split
+            
+            // Subtle rotation for "floating" effect
+            playerA.rotation = Math.sin(Date.now() * 0.01) * 0.1;
+            playerB.rotation = -playerA.rotation;
+        } else {
+            // Collapse
+            const centerX = app.screen.width / 2;
+            playerA.x += (centerX - playerA.x) * 0.2 * delta;
+            playerB.x = playerA.x;
+            playerB.alpha = 0;
+            playerA.tint = 0xffffff;
+            playerA.rotation = 0;
+        }
+
+        // Collision & Cleanup
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            const ob = obstacles[i];
+            ob.y += 6 * delta;
+
+            const hitA = Math.abs(ob.x - playerA.x) < 60 && Math.abs(ob.y - playerA.y) < 40;
+            const hitB = isSuperpositioned && Math.abs(ob.x - playerB.x) < 60 && Math.abs(ob.y - playerB.y) < 40;
+
+            if (hitA || hitB) {
+                ob.tint = 0xff0000; // Red flash on hit
+                playerA.y += 2; // Knockback effect
+            }
+
+            if (ob.y > app.screen.height + 50) {
+                app.stage.removeChild(ob);
+                obstacles.splice(i, 1);
+            }
+        }
+    });
+</script>
+</body>
+</html>
