@@ -325,31 +325,49 @@ const Physics={
   fAngle(f,a){return a?f.upAngle:f.baseAngle;},
   fEnd(f,a){const ang=this.fAngle(f,a);return{x:f.x+Math.cos(ang)*f.len,y:f.y+Math.sin(ang)*f.len};},
 
-  flipperHit(ball,f,active){
-    const fe=this.fEnd(f,active);
-    const d=this.distSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
-    const thresh=CFG.BALL_R+7;
-    if(d>=thresh)return;
-    const cp=this.closestSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
-    let nx=ball.x-cp.x,ny=ball.y-cp.y;
-    const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;
-    ball.x+=nx*(thresh-d)*1.1;
-    ball.y+=ny*(thresh-d)*1.1;
-    const approach=-(ball.vx*nx+ball.vy*ny);
-    if(approach>0.05){
-      const dot=ball.vx*nx+ball.vy*ny;
-      ball.vx-=2*dot*nx;
-      ball.vy-=2*dot*ny;
-      if(active){
-        ball.vy-=8+Math.abs(ball.vx)*0.45;
-        ball.vx*=1.12;
-        State.shake=Math.max(State.shake,5);
-      }else{
-        ball.vy*=0.80;
+   flipperHit(ball, f, active) {
+    const fe = this.fEnd(f, active);
+    const d = this.distSeg(ball.x, ball.y, f.x, f.y, fe.x, fe.y);
+    const thresh = CFG.BALL_R + 8; // Slightly thicker hit area for safety
+
+    // --- TUNNELING PROTECTION ---
+    // If the ball isn't "touching" but is inside the flipper's Y-range and falling fast
+    if (d >= thresh) {
+      const isBetween = (f === FL) ? (ball.x > f.x && ball.x < fe.x) : (ball.x < f.x && ball.x > fe.x);
+      if (isBetween && ball.y > f.y - 10 && ball.y < f.y + 20 && ball.vy > 0) {
+        ball.y = f.y - thresh; // Snap ball to top of flipper
+        ball.vy *= -0.6;       // Kick it back up slightly
       }
-      ball.vx=Math.max(-13,Math.min(13,ball.vx));
-      ball.vy=Math.max(-18,Math.min(12,ball.vy));
-      Particles.spawn(cp.x,cp.y,0x00ffff,7);
+      return;
+    }
+
+    const cp = this.closestSeg(ball.x, ball.y, f.x, f.y, fe.x, fe.y);
+    let nx = ball.x - cp.x, ny = ball.y - cp.y;
+    const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+
+    // Push ball out of the flipper body
+    ball.x += nx * (thresh - d) * 1.2;
+    ball.y += ny * (thresh - d) * 1.2;
+
+    const approach = -(ball.vx * nx + ball.vy * ny);
+    if (approach > 0.05) {
+      const dot = ball.vx * nx + ball.vy * ny;
+      ball.vx -= 2 * dot * nx;
+      ball.vy -= 2 * dot * ny;
+
+      if (active) {
+        // Give the ball a strong upward boost if flipper is moving up
+        ball.vy -= 9 + Math.abs(ball.vx) * 0.5;
+        ball.vx *= 1.15;
+        State.shake = Math.max(State.shake, 6);
+      } else {
+        ball.vy *= 0.75; // Dampen the bounce if flipper is stationary
+      }
+
+      // Keep speeds within sane limits
+      ball.vx = Math.max(-14, Math.min(14, ball.vx));
+      ball.vy = Math.max(-20, Math.min(12, ball.vy));
+      Particles.spawn(cp.x, cp.y, 0x00ffff, 7);
     }
   },
 
@@ -507,24 +525,6 @@ const Physics={
       setTimeout(resetBall,1000);
     }
   },
-};
-
-let parts=[];
-const pGfx=new PIXI.Graphics();fxLayer.addChild(pGfx);
-const Particles={
-  spawn(x,y,color,n=12){
-    for(let i=0;i<n;i++){
-      const a=(Math.PI*2*i/n)+Math.random()*.5,sp=2+Math.random()*4;
-      parts.push({x,y,vx:Math.cos(a)*sp,vy:Math.sin(a)*sp,life:1,color,r:2+Math.random()*3});
-    }
-  },
-  update(){
-    pGfx.clear();parts=parts.filter(p=>p.life>0.02);
-    parts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;p.vy+=.1;p.vx*=.96;p.life-=.04;
-      pGfx.beginFill(p.color,p.life*.85);pGfx.drawCircle(p.x,p.y,p.r*p.life);pGfx.endFill();
-    });
-  }
 };
 
 const bgGfx=new PIXI.Graphics();bgLayer.addChild(bgGfx);
