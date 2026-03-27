@@ -485,7 +485,7 @@ function checkFlipperCollision(f, active) {
     ballVY -= 2*dot*(ny/len);
     // Flipper kick boost
     if (active) {
-      ballVY -= 5 + Math.abs(ballVX) * 0.3;
+      ballVY -= 6.5 + Math.abs(ballVX) * 0.35;
       ballVX *= 1.1;
     }
     ballVX = Math.max(-12, Math.min(12, ballVX));
