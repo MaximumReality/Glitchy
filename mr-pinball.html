@@ -175,7 +175,7 @@ const Audio=(()=>{
     try{
       ctx=new(window.AudioContext||window.webkitAudioContext)();
       gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);
-      const r=await fetch('https://maximumreality.github.io/Glitchy/chaos.mp3');
+      const r=await fetch('https://maximumreality.github.io/Glitchy/ShiftReality.mp3');
       buf=await ctx.decodeAudioData(await r.arrayBuffer());
       loaded=true; if(!muted) go();
     }catch(e){document.getElementById('music-btn').textContent='♪ ERR';}
@@ -397,6 +397,8 @@ const Physics={
 
   checkSlings(){
     SLINGS.forEach(s=>{
+      // Don't let the right sling interfere with the launch lane (ball moving up inside x:365–398)
+      if(s.side==='right'&&State.ballVY<0&&State.ballX>365) return;
       const d=this.distSeg(State.ballX,State.ballY,s.x1,s.y1,s.x2,s.y2);
       if(d<CFG.BALL_R+4){
         const cp=this.closestSeg(State.ballX,State.ballY,s.x1,s.y1,s.x2,s.y2);
