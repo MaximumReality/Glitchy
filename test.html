@@ -13,7 +13,6 @@ html,body{background:#000;overflow:hidden;height:100%;width:100%;touch-action:ma
 body{display:flex;flex-direction:column;align-items:center;justify-content:flex-start;height:100dvh;font-family:'Courier New',monospace;}
 #hud{width:100%;flex-shrink:0;display:flex;justify-content:space-between;align-items:center;padding:4px 10px;background:#000;border-bottom:1px solid #0ff3;z-index:10;position:relative;}
 #combo-bar-wrap{position:absolute;bottom:0;left:0;right:0;height:3px;background:#001;}
-/* Skill zone marker at 78% */
 #combo-bar-wrap::before{content:'';position:absolute;left:78%;width:3px;height:100%;background:#f0f;box-shadow:0 0 6px #f0f;z-index:5;}
 #combo-bar{height:100%;width:0%;background:linear-gradient(90deg,#0ff,#f0f);transition:width .08s linear;box-shadow:0 0 8px #0ff;}
 .hud-block{text-align:center;}
@@ -26,27 +25,21 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 #canvas-wrap canvas{display:block;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);}
 #msg{position:absolute;top:38%;left:50%;transform:translate(-50%,-50%);font-size:20px;color:#0ff;text-shadow:0 0 20px #0ff;text-align:center;pointer-events:none;letter-spacing:3px;opacity:0;transition:opacity .3s;z-index:20;white-space:nowrap;}
 #controls{width:100%;flex-shrink:0;display:flex;justify-content:space-between;padding:6px 14px env(safe-area-inset-bottom,6px);background:#000;gap:8px;z-index:10;}
-.flipper-btn{flex:1;height:52px;background:linear-gradient(135deg,#0ff2,#f0f2);border:1px solid #0ff6;border-radius:8px;color:#0ff;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;text-shadow:0 0 8px #0ff;box-shadow:0 0 12px #0ff3,inset 0 0 8px #0ff1;transition:all .08s;touch-action:none;}
+.flipper-btn{flex:1;height:52px;background:linear-gradient(135deg,#0ff2,#f0f2);border:1px solid #0ff6;border-radius:8px;color:#0ff;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;text-shadow:0 0 8px #0ff;box-shadow:0 0 12px #0ff3,inset 0 0 8px #0ff1;transition:all .08s;touch-action:none;-webkit-tap-highlight-color:transparent;outline:none;}
 .flipper-btn:active,.flipper-btn.active{background:linear-gradient(135deg,#0ff5,#f0f4);box-shadow:0 0 24px #0ff8,inset 0 0 16px #0ff4;border-color:#0ff;}
-#launch-btn{flex:0.6;background:linear-gradient(135deg,#ff02,#f802);border-color:#f80a;color:#f80;text-shadow:0 0 8px #f80;box-shadow:0 0 12px #f803,inset 0 0 8px #f801;touch-action:none;}
-#launch-btn:active,#launch-btn.active{box-shadow:0 0 24px #f808,inset 0 0 16px #f804;border-color:#f80;},#launch-btn {
-  -webkit-tap-highlight-color: transparent;
-  -webkit-touch-callout: none;
-  outline: none;
-}
-
+#launch-btn{flex:0.6;background:linear-gradient(135deg,#ff02,#f802);border-color:#f80a;color:#f80;text-shadow:0 0 8px #f80;box-shadow:0 0 12px #f803,inset 0 0 8px #f801;touch-action:none;-webkit-tap-highlight-color:transparent;outline:none;}
+#launch-btn:active,#launch-btn.active{box-shadow:0 0 24px #f808,inset 0 0 16px #f804;border-color:#f80;}
 #azul-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,#00f8,transparent 70%);opacity:0;pointer-events:none;z-index:15;}
 #mochkil-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,#f0f8,transparent 70%);opacity:0;pointer-events:none;z-index:15;}
 #mode-overlay{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:11px;color:#ff0;letter-spacing:4px;text-shadow:0 0 12px #ff0;opacity:0;pointer-events:none;z-index:20;white-space:nowrap;}
 #tilt-indicator{position:absolute;bottom:4px;left:50%;transform:translateX(-50%);font-size:9px;color:#0ff4;letter-spacing:2px;pointer-events:none;z-index:20;white-space:nowrap;opacity:0;transition:opacity 1s;}
 #music-btn{position:absolute;top:4px;right:4px;background:none;border:1px solid #0ff4;color:#0ff8;font-size:10px;letter-spacing:1px;padding:2px 6px;cursor:pointer;z-index:30;font-family:'Courier New',monospace;border-radius:4px;touch-action:manipulation;}
 #music-btn:hover{border-color:#0ff;color:#0ff;}
-/* Game Over overlay */
 #game-over-overlay{display:none;position:absolute;inset:0;background:rgba(0,0,0,0.92);z-index:100;flex-direction:column;justify-content:center;align-items:center;color:#0ff;font-family:'Courier New',monospace;text-align:center;}
 #game-over-overlay h1{font-size:38px;text-shadow:0 0 20px #0ff;margin-bottom:16px;letter-spacing:4px;}
 #final-stats{font-size:16px;line-height:1.8;margin-bottom:24px;}
 #new-record-msg{color:#f0f;font-weight:bold;text-shadow:0 0 12px #f0f;display:none;}
-#play-again-btn{background:transparent;border:2px solid #0ff;color:#0ff;padding:12px 28px;font-size:16px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;box-shadow:0 0 12px #0ff4;touch-action:manipulation;}
+#play-again-btn{background:transparent;border:2px solid #0ff;color:#0ff;padding:12px 28px;font-size:16px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;box-shadow:0 0 12px #0ff4;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none;}
 #play-again-btn:active{background:#0ff2;}
 </style>
 </head>
@@ -94,13 +87,6 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 </div>
 
 <script>
-// ═══════════════════════════════════════════════════════════════
-// MAXIMUM REALITY PINBALL v4
-// Full rebuild: proper tube launch · flipper fix for all balls
-// skill shot · high score · game over overlay · screen shake
-// tighter flippers · double-tap zoom kill · multiball flipper fix
-// ═══════════════════════════════════════════════════════════════
-
 const CFG={
   W:420,H:720,
   WALL_LEFT:22,WALL_RIGHT:398,
@@ -108,7 +94,7 @@ const CFG={
   GRAVITY:0.22,
   FRICTION:0.985,
   FLIPPER_Y:610,
-  FLIPPER_LEN:118,       // tighter/shorter
+  FLIPPER_LEN:118,
   BUMPER_COOLDOWN:15,
   COMBO_DECAY_MS:2200,
   AZUL_MODE_DURATION:360,
@@ -130,7 +116,6 @@ const CFG={
   ],
 };
 
-// ── CANVAS SIZING ─────────────────────────────
 const canvasWrap=document.getElementById('canvas-wrap');
 let _app=null;
 function resizeCanvas(){
@@ -142,7 +127,6 @@ function resizeCanvas(){
 }
 window.addEventListener('resize',resizeCanvas);
 
-// ── AUDIO ─────────────────────────────────────
 const Audio=(()=>{
   let ctx=null,source=null,gain=null,buf=null,muted=true,loaded=false,playing=false;
   async function init(){
@@ -172,7 +156,6 @@ const Audio=(()=>{
   return{init,toggle,pitch};
 })();
 
-// ── TILT ──────────────────────────────────────
 const Tilt=(()=>{
   let gamma=0,active=false;
   function listen(){
@@ -201,7 +184,6 @@ const Tilt=(()=>{
   return{start,impulse};
 })();
 
-// ── STATE ─────────────────────────────────────
 const State={
   score:0,
   highScore:Number(localStorage.getItem('mr_pinball_hi'))||0,
@@ -212,8 +194,7 @@ const State={
   mochkilMode:false,mochkilTimer:0,
   ballX:383,ballY:580,ballVX:0,ballVY:0,
   inLane:true,launchPower:14,isCharging:false,
-  scanlineTime:0,idleTimer:0,
-  shake:0,
+  scanlineTime:0,idleTimer:0,shake:0,
 
   reset(){
     this.score=0;this.balls=3;this.gameActive=false;this.ballLaunched=false;
@@ -245,7 +226,6 @@ const State={
   },
 };
 
-// ── PIXI SETUP ────────────────────────────────
 const app=new PIXI.Application({width:CFG.W,height:CFG.H,backgroundColor:0x000510,antialias:true,resolution:1});
 document.getElementById('canvas-wrap').prepend(app.view);
 _app=app;resizeCanvas();
@@ -254,7 +234,6 @@ const bgLayer=new PIXI.Container(),gameLayer=new PIXI.Container(),
       fxLayer=new PIXI.Container(),uiLayer=new PIXI.Container();
 app.stage.addChild(bgLayer,gameLayer,fxLayer,uiLayer);
 
-// ── GAME OBJECTS ──────────────────────────────
 const BUMPERS=[
   {x:160,y:185,r:22,color:0x00ffff,label:'Q',pts:500},
   {x:260,y:165,r:22,color:0xff00ff,label:'M',pts:500},
@@ -285,29 +264,23 @@ let slingHit=null,slingTimer=0;
 const FL={x:CFG.WALL_LEFT+14, y:CFG.FLIPPER_Y,len:CFG.FLIPPER_LEN,baseAngle:0.42,upAngle:-0.34};
 const FR={x:CFG.WALL_RIGHT-14,y:CFG.FLIPPER_Y,len:CFG.FLIPPER_LEN,baseAngle:Math.PI-0.42,upAngle:Math.PI+0.34};
 
-// ── PHYSICS ───────────────────────────────────
 const Physics={
   dist(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);},
-
   distSeg(px,py,ax,ay,bx,by){
     const dx=bx-ax,dy=by-ay,lsq=dx*dx+dy*dy;
     if(!lsq)return this.dist(px,py,ax,ay);
     const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/lsq));
     return this.dist(px,py,ax+t*dx,ay+t*dy);
   },
-
   closestSeg(px,py,ax,ay,bx,by){
     const dx=bx-ax,dy=by-ay,lsq=dx*dx+dy*dy;
     if(!lsq)return{x:ax,y:ay};
     const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/lsq));
     return{x:ax+t*dx,y:ay+t*dy};
   },
-
   fAngle(f,a){return a?f.upAngle:f.baseAngle;},
   fEnd(f,a){const ang=this.fAngle(f,a);return{x:f.x+Math.cos(ang)*f.len,y:f.y+Math.sin(ang)*f.len};},
 
-  // ── UNIVERSAL FLIPPER CHECK ──
-  // Works on any ball object {x,y,vx,vy}
   flipperHit(ball,f,active){
     const fe=this.fEnd(f,active);
     const d=this.distSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
@@ -316,10 +289,8 @@ const Physics={
     const cp=this.closestSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
     let nx=ball.x-cp.x,ny=ball.y-cp.y;
     const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;
-    // Always push out
-    const overlap=thresh-d;
-    ball.x+=nx*overlap*1.1;
-    ball.y+=ny*overlap*1.1;
+    ball.x+=nx*(thresh-d)*1.1;
+    ball.y+=ny*(thresh-d)*1.1;
     const approach=-(ball.vx*nx+ball.vy*ny);
     if(approach>0.05){
       const dot=ball.vx*nx+ball.vy*ny;
@@ -338,7 +309,6 @@ const Physics={
     }
   },
 
-  // Wrapper for main ball using State
   checkFlipper(f,active){
     const tmp={x:State.ballX,y:State.ballY,vx:State.ballVX,vy:State.ballVY};
     this.flipperHit(tmp,f,active);
@@ -405,7 +375,6 @@ const Physics={
   },
 
   checkGutters(){
-    // Only deflect when falling
     if(State.ballVY<=0)return;
     [{x1:CFG.WALL_LEFT,y1:CFG.H-100,x2:CFG.WALL_LEFT+55,y2:CFG.H-10,nx:-90,ny:55},
      {x1:CFG.WALL_RIGHT,y1:CFG.H-100,x2:CFG.WALL_RIGHT-55,y2:CFG.H-10,nx:90,ny:-55}
@@ -419,14 +388,12 @@ const Physics={
     });
   },
 
-  // Tick a generic ball object (used for azul extra balls too)
   tickBallObj(b){
     b.vy+=CFG.GRAVITY;b.vx*=CFG.FRICTION;b.vy*=CFG.FRICTION;
     b.x+=b.vx;b.y+=b.vy;
-    if(b.x-CFG.BALL_R<CFG.WALL_LEFT){b.x=CFG.WALL_LEFT+CFG.BALL_R;b.vx=Math.abs(b.vx)*0.85;Particles.spawn(CFG.WALL_LEFT,b.y,0x0088ff,4);}
-    if(b.x+CFG.BALL_R>CFG.WALL_RIGHT){b.x=CFG.WALL_RIGHT-CFG.BALL_R;b.vx=-Math.abs(b.vx)*0.85;Particles.spawn(CFG.WALL_RIGHT,b.y,0x0088ff,4);}
+    if(b.x-CFG.BALL_R<CFG.WALL_LEFT){b.x=CFG.WALL_LEFT+CFG.BALL_R;b.vx=Math.abs(b.vx)*0.85;}
+    if(b.x+CFG.BALL_R>CFG.WALL_RIGHT){b.x=CFG.WALL_RIGHT-CFG.BALL_R;b.vx=-Math.abs(b.vx)*0.85;}
     if(b.y-CFG.BALL_R<55){b.y=55+CFG.BALL_R;b.vy=Math.abs(b.vy)*0.75;}
-    // Bumpers
     BUMPERS.forEach(bmp=>{
       const d=this.dist(b.x,b.y,bmp.x,bmp.y);
       if(d<bmp.r+CFG.BALL_R){
@@ -438,7 +405,6 @@ const Physics={
         State.shake=Math.max(State.shake,5);
       }
     });
-    // ── FLIPPERS for extra balls ──
     const lA=State.flippersReversed?State.rightFlipperActive:State.leftFlipperActive;
     const rA=State.flippersReversed?State.leftFlipperActive:State.rightFlipperActive;
     this.flipperHit(b,FL,lA);
@@ -452,35 +418,30 @@ const Physics={
     if(State.azulMode)State.ballVX+=(Math.random()-0.5)*0.4;
     State.ballX+=State.ballVX;State.ballY+=State.ballVY;
 
-    // ── LANE MODE ──
     if(State.inLane){
       State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
       State.ballVX=0;
-      State.ballVY-=CFG.GRAVITY; // cancel gravity in tube
+      State.ballVY-=CFG.GRAVITY;
       if(State.ballY-CFG.BALL_R<=CFG.LANE_EXIT_Y){
         State.inLane=false;
         State.ballY=CFG.LANE_EXIT_Y+CFG.BALL_R;
-        State.ballVX=-4;
-        State.ballVY=-2;
+        State.ballVX=-4;State.ballVY=-2;
         Particles.spawn(State.ballX,State.ballY,0x00ffff,18);
         showMsg('🚀 BALL IN PLAY!');
       }
       return;
     }
 
-    // ── PLAYFIELD MODE ──
     if(State.ballX-CFG.BALL_R<CFG.WALL_LEFT){State.ballX=CFG.WALL_LEFT+CFG.BALL_R;State.ballVX=Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_LEFT,State.ballY,0x0088ff,5);}
     if(State.ballX+CFG.BALL_R>CFG.WALL_RIGHT){State.ballX=CFG.WALL_RIGHT-CFG.BALL_R;State.ballVX=-Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_RIGHT,State.ballY,0x0088ff,5);}
     if(State.ballY-CFG.BALL_R<55){State.ballY=55+CFG.BALL_R;State.ballVY=Math.abs(State.ballVY)*0.75;}
 
     this.checkBumpers();this.checkSlings();this.checkTargets();
-
     const lA=State.flippersReversed?State.rightFlipperActive:State.leftFlipperActive;
     const rA=State.flippersReversed?State.leftFlipperActive:State.rightFlipperActive;
     this.checkFlipper(FL,lA);this.checkFlipper(FR,rA);
     this.checkGutters();
 
-    // Tick extra azul balls — all physics including flippers
     State.azulBalls=State.azulBalls.filter(b=>b.y<CFG.H+30);
     State.azulBalls.forEach(b=>this.tickBallObj(b));
 
@@ -504,7 +465,6 @@ const Physics={
   },
 };
 
-// ── PARTICLES ─────────────────────────────────
 let parts=[];
 const pGfx=new PIXI.Graphics();fxLayer.addChild(pGfx);
 const Particles={
@@ -523,7 +483,6 @@ const Particles={
   }
 };
 
-// ── RENDER GRAPHICS ───────────────────────────
 const bgGfx=new PIXI.Graphics();bgLayer.addChild(bgGfx);
 const bmpGfx=new PIXI.Graphics();gameLayer.addChild(bmpGfx);
 const slGfx=new PIXI.Graphics();gameLayer.addChild(slGfx);
@@ -533,39 +492,50 @@ const springGfx=new PIXI.Graphics();gameLayer.addChild(springGfx);
 const scanGfx=new PIXI.Graphics();fxLayer.addChild(scanGfx);
 const laneGfx=new PIXI.Graphics();bgLayer.addChild(laneGfx);
 
-// Bumper labels
 const bmpTxt=BUMPERS.map(b=>{
   const t=new PIXI.Text(b.label,{fontSize:b.r>18?13:10,fill:b.color,fontFamily:'Courier New',fontWeight:'bold',align:'center'});
   t.anchor.set(.5);t.x=b.x;t.y=b.y;gameLayer.addChild(t);return t;
 });
 
-// Decorative UI
 const azulEmoji=new PIXI.Text('😼',{fontSize:26});azulEmoji.anchor.set(.5);azulEmoji.x=75;azulEmoji.y=390;uiLayer.addChild(azulEmoji);
 const mochEmoji=new PIXI.Text('🐱',{fontSize:26});mochEmoji.anchor.set(.5);mochEmoji.x=CFG.W-90;mochEmoji.y=390;uiLayer.addChild(mochEmoji);
 const mrTitle=new PIXI.Text('MAXIMUM\nREALITY',{fontSize:13,fill:0x00ffff,fontFamily:'Courier New',fontWeight:'bold',align:'center',letterSpacing:3,dropShadow:true,dropShadowColor:0x00ffff,dropShadowBlur:12,dropShadowDistance:0});
 mrTitle.anchor.set(.5);mrTitle.x=CFG.W/2;mrTitle.y=415;uiLayer.addChild(mrTitle);
 
-// Ball sprite — glowing circle (swap for ball.png when available)
-function makeBallTex(col){
-  const g=new PIXI.Graphics();
-  g.beginFill(col,.15);g.drawCircle(0,0,CFG.BALL_R+9);g.endFill();
-  g.beginFill(col,.3);g.drawCircle(0,0,CFG.BALL_R+4);g.endFill();
-  g.beginFill(col,1);g.drawCircle(0,0,CFG.BALL_R);g.endFill();
-  g.beginFill(0xffffff,.65);g.drawCircle(-3,-3,3.5);g.endFill();
-  return app.renderer.generateTexture(g);
-}
-const ballSpr=new PIXI.Sprite(PIXI.Texture.from('ball.png'));
-ballSpr.anchor.set(.5);gameLayer.addChild(ballSpr);
+// ── BALL SPRITE with glow layer ───────────────
+// Glow drawn beneath the image so it halos around ball.png
+const ballGlowGfx=new PIXI.Graphics();
+ballGlowGfx.beginFill(0x88ffff,0.35);
+ballGlowGfx.drawCircle(0,0,CFG.BALL_R+8);
+ballGlowGfx.endFill();
+const ballGlowTex=app.renderer.generateTexture(ballGlowGfx);
+const ballGlow=new PIXI.Sprite(ballGlowTex);
+ballGlow.anchor.set(.5);
+gameLayer.addChild(ballGlow);
 
+const ballSpr=new PIXI.Sprite(PIXI.Texture.from('ball.png'));
+ballSpr.anchor.set(.5);
+ballSpr.width=CFG.BALL_R*2.4;   // ← size it to match physics radius
+ballSpr.height=CFG.BALL_R*2.4;
+gameLayer.addChild(ballSpr);
+
+// Extra azul balls — same setup
 const xBallSprs=Array.from({length:3},()=>{
+  const glow=new PIXI.Sprite(ballGlowTex);
+  glow.anchor.set(.5);glow.tint=0xff88ff;
+  gameLayer.addChild(glow);
+
   const s=new PIXI.Sprite(PIXI.Texture.from('ball.png'));
-  s.tint=0xff88ff;
   s.anchor.set(.5);
+  s.width=CFG.BALL_R*2.4;
+  s.height=CFG.BALL_R*2.4;
+  s.tint=0xff88ff;
   s.visible=false;
+  glow.visible=false;
   gameLayer.addChild(s);
+  s._glow=glow; // link them
   return s;
 });
-
 
 const Render={
   bg(){
@@ -627,14 +597,20 @@ const Render={
     });
   },
   ball(){
-    const pulse=0.92+Math.sin(State.scanlineTime*10)*0.08;
-    ballSpr.tint=State.azulMode?0xff88ff:(State.mochkilMode?0xff44ff:0xffffff);
+    const pulse=0.9+Math.sin(State.scanlineTime*10)*0.1;
+    const glowCol=State.azulMode?0xff88ff:(State.mochkilMode?0xff44ff:0x88ffff);
+    ballGlow.x=State.ballX;ballGlow.y=State.ballY;
+    ballGlow.tint=glowCol;ballGlow.scale.set(pulse);
     ballSpr.x=State.ballX;ballSpr.y=State.ballY;
-    ballSpr.scale.set(pulse);
+    ballSpr.tint=State.azulMode?0xff88ff:(State.mochkilMode?0xff44ff:0xffffff);
     xBallSprs.forEach((s,i)=>{
       const b=State.azulBalls[i];
-      if(b){s.visible=true;s.x=b.x;s.y=b.y;}
-      else s.visible=false;
+      if(b){
+        s.visible=true;s.x=b.x;s.y=b.y;
+        s._glow.visible=true;s._glow.x=b.x;s._glow.y=b.y;s._glow.scale.set(pulse);
+      }else{
+        s.visible=false;s._glow.visible=false;
+      }
     });
   },
   scoreFloat(pts,x,y,col){
@@ -660,23 +636,19 @@ const Render={
     const lx=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
     const baseY=CFG.H-80;
     const powerRatio=State.isCharging
-      ?(State.launchPower-CFG.LAUNCH_MIN_POWER)/(CFG.LAUNCH_MAX_POWER-CFG.LAUNCH_MIN_POWER)
-      :0;
+      ?(State.launchPower-CFG.LAUNCH_MIN_POWER)/(CFG.LAUNCH_MAX_POWER-CFG.LAUNCH_MIN_POWER):0;
     const springH=60-30*powerRatio;
-    // Skill zone color
     let springCol=0x00ffff;
     if(State.isCharging){
       springCol=(powerRatio>=CFG.SKILL_LOW&&powerRatio<=CFG.SKILL_HIGH)?0xff00ff:0xffaa00;
     }
-    // Plunger head
-    const headR=State.isCharging?Math.round(255):0x44;
+    const headR=State.isCharging?255:0x44;
     const headG=State.isCharging?Math.round(255*(1-powerRatio*0.85)):0x66;
     const headCol=PIXI.utils.rgb2hex([headR/255,headG/255,State.isCharging?0.1:0.53]);
     springGfx.lineStyle(2,0x888888);
     springGfx.beginFill(headCol);
     springGfx.drawRect(lx-12,baseY-springH-5,24,8);
     springGfx.endFill();
-    // Coils
     springGfx.lineStyle(2,springCol,State.isCharging?1:0.5);
     const coils=8;
     for(let i=0;i<=coils;i++){
@@ -686,12 +658,10 @@ const Render={
       else springGfx.lineTo(lx+xo,y);
     }
     springGfx.lineTo(lx,baseY);
-    // Max charge glow
     if(powerRatio>0.9){
       springGfx.lineStyle(4,0xff0000,0.5+Math.sin(State.scanlineTime*20)*0.5);
       springGfx.drawCircle(lx,State.ballY,CFG.BALL_R+7);
     }
-    // Skill zone ring
     if(powerRatio>=CFG.SKILL_LOW&&powerRatio<=CFG.SKILL_HIGH){
       springGfx.lineStyle(3,0xff00ff,0.7+Math.sin(State.scanlineTime*15)*0.3);
       springGfx.drawCircle(lx,State.ballY,CFG.BALL_R+12);
@@ -700,18 +670,12 @@ const Render={
   init(){this.bg();this.bumpers();this.slings();this.targets();},
 };
 
-// ── MODES ─────────────────────────────────────
 const Modes={
   startAzul(){
     State.azulMode=true;State.azulTimer=CFG.AZUL_MODE_DURATION;
     const n=1+Math.floor(Math.random()*2);
     for(let i=0;i<n&&i<3;i++)
-      State.azulBalls.push({
-        x:CFG.W/2+(Math.random()-.5)*60,
-        y:300+Math.random()*80,
-        vx:(Math.random()-.5)*8,
-        vy:-5-Math.random()*4,
-      });
+      State.azulBalls.push({x:CFG.W/2+(Math.random()-.5)*60,y:300+Math.random()*80,vx:(Math.random()-.5)*8,vy:-5-Math.random()*4});
     showMsg('😼 AZUL MODE — MULTIBALL!');updateHUD('AZUL MODE');
     document.getElementById('mode-overlay').textContent='— AZUL MODE ACTIVE —';
     document.getElementById('mode-overlay').style.opacity='1';
@@ -749,7 +713,6 @@ const Modes={
   },
 };
 
-// ── HUD & GAME FLOW ───────────────────────────
 function updateHUD(mode){
   document.getElementById('score-display').textContent=String(State.score).padStart(6,'0');
   document.getElementById('hi-display').textContent=String(State.highScore).padStart(6,'0');
@@ -767,10 +730,7 @@ function showMsg(txt){
 
 function checkHighScore(){
   const isNew=State.score>State.highScore;
-  if(isNew){
-    State.highScore=State.score;
-    localStorage.setItem('mr_pinball_hi',State.highScore);
-  }
+  if(isNew){State.highScore=State.score;localStorage.setItem('mr_pinball_hi',State.highScore);}
   document.getElementById('stat-score').textContent=State.score;
   document.getElementById('stat-hi').textContent=State.highScore;
   document.getElementById('new-record-msg').style.display=isNew?'block':'none';
@@ -779,11 +739,7 @@ function checkHighScore(){
 
 function resetGameFromOverlay(){
   document.getElementById('game-over-overlay').style.display='none';
-  State.reset();
-  Render.targets();
-  updateHUD('INSERT COIN');
-  resetBall();
-  showMsg('🎰 MAXIMUM REALITY');
+  State.reset();Render.targets();updateHUD('INSERT COIN');resetBall();showMsg('🎰 MAXIMUM REALITY');
 }
 
 function resetBall(){
@@ -799,46 +755,34 @@ function resetBall(){
 
 function startCharging(){
   if(State.ballLaunched)return;
-  State.isCharging=true;
-  State.launchPower=CFG.LAUNCH_MIN_POWER;
-  updateHUD('CHARGING...');
+  State.isCharging=true;State.launchPower=CFG.LAUNCH_MIN_POWER;updateHUD('CHARGING...');
 }
 
 function launchBall(){
   if(State.ballLaunched||!State.isCharging)return;
   const powerRatio=(State.launchPower-CFG.LAUNCH_MIN_POWER)/(CFG.LAUNCH_MAX_POWER-CFG.LAUNCH_MIN_POWER);
-  State.isCharging=false;
-  State.gameActive=true;
-  State.ballVY=-State.launchPower;
-  State.ballVX=0;
+  State.isCharging=false;State.gameActive=true;
+  State.ballVY=-State.launchPower;State.ballVX=0;
   State.ballLaunched=true;State.idleTimer=0;
   if(powerRatio>=CFG.SKILL_LOW&&powerRatio<=CFG.SKILL_HIGH){
     State.addScore(CFG.SKILL_PTS,State.ballX,State.ballY,0xff00ff);
     showMsg('🎯 SKILL SHOT! +5000');
-    Particles.spawn(State.ballX,State.ballY,0xff00ff,40);
-    State.shake=14;
-  }else{
-    updateHUD('GO!');
-  }
+    Particles.spawn(State.ballX,State.ballY,0xff00ff,40);State.shake=14;
+  }else{updateHUD('GO!');}
   Particles.spawn(State.ballX,State.ballY+10,0xffaa00,15);
 }
 
-// ── MAIN LOOP ─────────────────────────────────
 Render.init();updateHUD('INSERT COIN');resetBall();showMsg('🎰 MAXIMUM REALITY');
 Tilt.start();
 
 app.ticker.add(()=>{
   State.scanlineTime+=.01;
-
-  // Screen shake
   if(State.shake>0){
     app.stage.x=(Math.random()-.5)*State.shake;
     app.stage.y=(Math.random()-.5)*State.shake;
     State.shake*=0.88;
     if(State.shake<0.2){State.shake=0;app.stage.x=app.stage.y=0;}
   }
-
-  // Pre-launch
   if(!State.ballLaunched){
     State.idleTimer++;
     if(State.idleTimer>600){State.isCharging=true;State.launchPower=CFG.LAUNCH_MAX_POWER;launchBall();}
@@ -852,19 +796,15 @@ app.ticker.add(()=>{
       document.getElementById('combo-bar').style.width=(pr*100)+'%';
     }
     Render.ball();Render.flippers();Render.spring();Render.scan(State.scanlineTime);
-    Particles.update();
-    return;
+    Particles.update();return;
   }
-
   Physics.tickBall();Modes.tick();
   Render.ball();Render.flippers();Render.spring();Render.scan(State.scanlineTime);
   Particles.update();Render.floaters();
-
   azulEmoji.y=390+Math.sin(State.scanlineTime*2)*3;
   mochEmoji.y=390+Math.sin(State.scanlineTime*2+1)*3;
   azulEmoji.rotation=State.azulMode?Math.sin(State.scanlineTime*15)*.15:0;
   mochEmoji.rotation=State.mochkilMode?Math.sin(State.scanlineTime*18)*.2:0;
-
   if(Math.random()<.008||State.mochkilMode){
     mrTitle.x=CFG.W/2+(Math.random()-.5)*(State.mochkilMode?20:10);
     mrTitle.alpha=.6+Math.random()*.4;
@@ -875,14 +815,11 @@ app.ticker.add(()=>{
   }
 });
 
-// ── INPUT ─────────────────────────────────────
 const leftBtn=document.getElementById('left-btn');
 const rightBtn=document.getElementById('right-btn');
 const launchEl=document.getElementById('launch-btn');
-
 function setL(v){State.leftFlipperActive=v;leftBtn.classList.toggle('active',v);}
 function setR(v){State.rightFlipperActive=v;rightBtn.classList.toggle('active',v);}
-
 function btn(el,dn,up){
   el.addEventListener('pointerdown',e=>{e.preventDefault();dn();},{passive:false});
   el.addEventListener('pointerup',e=>{e.preventDefault();up();},{passive:false});
@@ -891,26 +828,18 @@ function btn(el,dn,up){
 }
 btn(leftBtn,()=>setL(true),()=>setL(false));
 btn(rightBtn,()=>setR(true),()=>setR(false));
-btn(launchEl,
-  ()=>{startCharging();launchEl.classList.add('active');},
-  ()=>{launchBall();launchEl.classList.remove('active');}
-);
+btn(launchEl,()=>{startCharging();launchEl.classList.add('active');},()=>{launchBall();launchEl.classList.remove('active');});
 
 document.getElementById('music-btn').addEventListener('click',()=>Audio.toggle());
-
-// iOS tilt + audio permission
 let tiltDone=false;
 document.addEventListener('pointerdown',()=>{
   Audio.init();
-  if(!tiltDone){
-    tiltDone=true;
+  if(!tiltDone){tiltDone=true;
     if(typeof DeviceOrientationEvent!=='undefined'&&typeof DeviceOrientationEvent.requestPermission==='function'){
       DeviceOrientationEvent.requestPermission().then(s=>{if(s==='granted')Tilt.start();}).catch(()=>{});
     }
   }
 },{passive:true});
-
-// Keyboard
 document.addEventListener('keydown',e=>{
   if(e.key==='z'||e.key==='Z'||e.key==='ArrowLeft')setL(true);
   if(e.key==='/'||e.key==='ArrowRight')setR(true);
@@ -922,15 +851,10 @@ document.addEventListener('keyup',e=>{
   if(e.key==='/'||e.key==='ArrowRight')setR(false);
   if(e.key===' '||e.key==='ArrowUp')launchBall();
 });
-
-// ── ANTI-ZOOM (double-tap + pinch) ────────────
 canvasWrap.addEventListener('touchstart',e=>{if(e.touches.length>1)e.preventDefault();},{passive:false});
-// Kill double-tap zoom
 let lastTap=0;
 document.addEventListener('touchend',e=>{
-  const now=Date.now();
-  if(now-lastTap<300)e.preventDefault();
-  lastTap=now;
+  const now=Date.now();if(now-lastTap<300)e.preventDefault();lastTap=now;
 },{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
