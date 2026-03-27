@@ -29,7 +29,12 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 .flipper-btn{flex:1;height:52px;background:linear-gradient(135deg,#0ff2,#f0f2);border:1px solid #0ff6;border-radius:8px;color:#0ff;font-family:'Courier New',monospace;font-size:12px;letter-spacing:2px;cursor:pointer;text-shadow:0 0 8px #0ff;box-shadow:0 0 12px #0ff3,inset 0 0 8px #0ff1;transition:all .08s;touch-action:none;}
 .flipper-btn:active,.flipper-btn.active{background:linear-gradient(135deg,#0ff5,#f0f4);box-shadow:0 0 24px #0ff8,inset 0 0 16px #0ff4;border-color:#0ff;}
 #launch-btn{flex:0.6;background:linear-gradient(135deg,#ff02,#f802);border-color:#f80a;color:#f80;text-shadow:0 0 8px #f80;box-shadow:0 0 12px #f803,inset 0 0 8px #f801;touch-action:none;}
-#launch-btn:active,#launch-btn.active{box-shadow:0 0 24px #f808,inset 0 0 16px #f804;border-color:#f80;}
+#launch-btn:active,#launch-btn.active{box-shadow:0 0 24px #f808,inset 0 0 16px #f804;border-color:#f80;},#launch-btn {
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none;
+  outline: none;
+}
+
 #azul-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 30% 50%,#00f8,transparent 70%);opacity:0;pointer-events:none;z-index:15;}
 #mochkil-flash{position:absolute;inset:0;background:radial-gradient(ellipse at 70% 50%,#f0f8,transparent 70%);opacity:0;pointer-events:none;z-index:15;}
 #mode-overlay{position:absolute;top:8px;left:50%;transform:translateX(-50%);font-size:11px;color:#ff0;letter-spacing:4px;text-shadow:0 0 12px #ff0;opacity:0;pointer-events:none;z-index:20;white-space:nowrap;}
@@ -549,11 +554,18 @@ function makeBallTex(col){
   g.beginFill(0xffffff,.65);g.drawCircle(-3,-3,3.5);g.endFill();
   return app.renderer.generateTexture(g);
 }
-const ballSpr=new PIXI.Sprite(makeBallTex(0xaaffff));ballSpr.anchor.set(.5);gameLayer.addChild(ballSpr);
-const xBallTex=makeBallTex(0xff88ff);
+const ballSpr=new PIXI.Sprite(PIXI.Texture.from('ball.png'));
+ballSpr.anchor.set(.5);gameLayer.addChild(ballSpr);
+
 const xBallSprs=Array.from({length:3},()=>{
-  const s=new PIXI.Sprite(xBallTex);s.anchor.set(.5);s.visible=false;gameLayer.addChild(s);return s;
+  const s=new PIXI.Sprite(PIXI.Texture.from('ball.png'));
+  s.tint=0xff88ff;
+  s.anchor.set(.5);
+  s.visible=false;
+  gameLayer.addChild(s);
+  return s;
 });
+
 
 const Render={
   bg(){
