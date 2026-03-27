@@ -175,7 +175,7 @@ const Audio=(()=>{
     try{
       ctx=new(window.AudioContext||window.webkitAudioContext)();
       gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);
-      const r=await fetch('https://maximumreality.github.io/Glitchy/ShiftReality.mp3');
+      const r=await fetch('https://maximumreality.github.io/Glitchy/chaos.mp3');
       buf=await ctx.decodeAudioData(await r.arrayBuffer());
       loaded=true; if(!muted) go();
     }catch(e){document.getElementById('music-btn').textContent='♪ ERR';}
@@ -427,81 +427,212 @@ const Physics={
       }
     });
   },
+const Physics = {
+  // ── UTILITY ──
+  dist(ax, ay, bx, by) {
+    return Math.hypot(ax - bx, ay - by);
+  },
+  reflectCircle(cx, cy) {
+    const dx = State.ballX - cx;
+    const dy = State.ballY - cy;
+    const l = Math.hypot(dx, dy) || 1;
+    const nx = dx / l;
+    const ny = dy / l;
+    const dot = State.ballVX * nx + State.ballVY * ny;
+    State.ballVX -= 2 * dot * nx;
+    State.ballVY -= 2 * dot * ny;
+  },
+  distSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lsq = dx * dx + dy * dy;
+    if (!lsq) return this.dist(px, py, ax, ay);
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lsq));
+    return this.dist(px, py, ax + t * dx, ay + t * dy);
+  },
+  closestSeg(px, py, ax, ay, bx, by) {
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lsq = dx * dx + dy * dy;
+    if (!lsq) return { x: ax, y: ay };
+    const t = Math.max(0, Math.min(1, ((px - ax) * dx + (py - ay) * dy) / lsq));
+    return { x: ax + t * dx, y: ay + t * dy };
+  },
 
-  checkGutters(){
-  const gutters = [
-    {x1:CFG.WALL_LEFT,y1:CFG.H-100,x2:CFG.WALL_LEFT+55,y2:CFG.H-10,nx:-(CFG.H-10-(CFG.H-100)),ny:55},
-    {x1:CFG.WALL_RIGHT,y1:CFG.H-100,x2:CFG.WALL_RIGHT-85,y2:CFG.H-10,nx:CFG.H-10-(CFG.H-100),ny:-85}
-  ];
+  // ── FLIPPER ──
+  fAngle(f, a) {
+    return a ? f.upAngle : f.baseAngle;
+  },
+  fEnd(f, a) {
+    const ang = this.fAngle(f, a);
+    return { x: f.x + Math.cos(ang) * f.len, y: f.y + Math.sin(ang) * f.len };
+  },
+  checkFlipper(f, active) {
+    const fe = this.fEnd(f, active);
+    const d = this.distSeg(State.ballX, State.ballY, f.x, f.y, fe.x, fe.y);
+    const thresh = CFG.BALL_R + 6;
+    if (d >= thresh) return;
 
-  gutters.forEach(g=>{
-    if(this.distSeg(State.ballX,State.ballY,g.x1,g.y1,g.x2,g.y2) < CFG.BALL_R+3){
-      const l = Math.hypot(g.nx,g.ny) || 1; // <-- safety
-      const nx = g.nx/l, ny = g.ny/l;
-      const dot = State.ballVX*nx + State.ballVY*ny;
-      State.ballVX -= 2*dot*nx*0.8;
-      State.ballVY -= 2*dot*ny*0.8;
+    const cp = this.closestSeg(State.ballX, State.ballY, f.x, f.y, fe.x, fe.y);
+    let nx = State.ballX - cp.x;
+    let ny = State.ballY - cp.y;
+    const nl = Math.hypot(nx, ny) || 1; 
+    nx /= nl; ny /= nl;
+
+    const overlap = thresh - d;
+    State.ballX += nx * overlap;
+    State.ballY += ny * overlap;
+
+    const approach = -(State.ballVX * nx + State.ballVY * ny);
+    if (approach > 0) {
+      const dot = State.ballVX * nx + State.ballVY * ny;
+      State.ballVX -= 2 * dot * nx;
+      State.ballVY -= 2 * dot * ny;
+      if (active) {
+        State.ballVY -= 7 + Math.abs(State.ballVX) * 0.4;
+        State.ballVX *= 1.1;
+      } else {
+        State.ballVY *= 0.82;
+      }
+      State.ballVX = Math.max(-13, Math.min(13, State.ballVX));
+      State.ballVY = Math.max(-18, Math.min(12, State.ballVY));
+      Particles.spawn(cp.x, cp.y, 0x00ffff, 8);
     }
-  });
-},
-  checkLaunchLane(){
-  if (State.ballX > 370 && State.ballY < CFG.H - 150 && State.ballVY > 0){
-    State.ballVX = Math.max(State.ballVX, 1.5);
-  }
-},
-  
-  tickBall(){
-    State.ballVY+=State.azulMode?CFG.GRAVITY*0.6:CFG.GRAVITY;
-    State.ballVX+=Tilt.impulse();
-    State.ballVX*=CFG.FRICTION;State.ballVY*=CFG.FRICTION;
-    if(State.azulMode)State.ballVX+=(Math.random()-0.5)*0.4;
-    State.ballX+=State.ballVX;State.ballY+=State.ballVY;
+  },
 
-    if(State.ballX-CFG.BALL_R<CFG.WALL_LEFT){State.ballX=CFG.WALL_LEFT+CFG.BALL_R;State.ballVX=Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_LEFT,State.ballY,0x0088ff,5);}
-    if(State.ballX+CFG.BALL_R>CFG.WALL_RIGHT){State.ballX=CFG.WALL_RIGHT-CFG.BALL_R;State.ballVX=-Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_RIGHT,State.ballY,0x0088ff,5);}
-    if(State.ballY-CFG.BALL_R<55){State.ballY=55+CFG.BALL_R;State.ballVY=Math.abs(State.ballVY)*0.75;}
+  // ── BUMPERS, SLINGS, TARGETS ──
+  checkBumpers() {
+    BUMPERS.forEach((b, i) => {
+      const d = this.dist(State.ballX, State.ballY, b.x, b.y);
+      if (d < b.r + CFG.BALL_R && !bumperCD[i]) {
+        this.reflectCircle(b.x, b.y);
+        const dx = State.ballX - b.x, dy = State.ballY - b.y, l = Math.hypot(dx, dy) || 1;
+        State.ballX = b.x + (dx / l) * (b.r + CFG.BALL_R + 1);
+        State.ballY = b.y + (dy / l) * (b.r + CFG.BALL_R + 1);
+        const pts = State.azulMode ? b.pts * 3 : b.pts;
+        State.hitCombo(); State.addScore(pts, b.x, b.y, b.color);
+        if (Math.random() < 0.3) showMsg(CFG.SCORE_MSGS[Math.floor(Math.random() * CFG.SCORE_MSGS.length)]);
+        bHitIdx = i; bHitTimer = 10; bumperCD[i] = CFG.BUMPER_COOLDOWN;
+        Render.bumpers(i);
+        if (!State.azulMode && Math.random() < 0.08) Modes.startAzul();
+        if (!State.mochkilMode && Math.random() < 0.06) Modes.startMochkil();
+      }
+      if (bumperCD[i] > 0) bumperCD[i]--;
+    });
+    if (bHitTimer > 0) { bHitTimer--; if (!bHitTimer) { bHitIdx = -1; Render.bumpers(-1); } }
+  },
+  checkSlings() {
+    SLINGS.forEach(s => {
+      const d = this.distSeg(State.ballX, State.ballY, s.x1, s.y1, s.x2, s.y2);
+      if (d < CFG.BALL_R + 4) {
+        const cp = this.closestSeg(State.ballX, State.ballY, s.x1, s.y1, s.x2, s.y2);
+        const nx = State.ballX - cp.x, ny = State.ballY - cp.y, l = Math.hypot(nx, ny) || 1;
+        State.ballX += (nx / l) * (CFG.BALL_R + 5 - d); State.ballY += (ny / l) * (CFG.BALL_R + 5 - d);
+        const dot = State.ballVX * (nx / l) + State.ballVY * (ny / l);
+        State.ballVX = (State.ballVX - 2 * dot * (nx / l)) * 1.3;
+        State.ballVY = (State.ballVY - 2 * dot * (ny / l)) * 1.3;
+        State.hitCombo(); State.addScore(150, cp.x, cp.y, s.side === 'left' ? 0x00aaff : 0xffaa00);
+        slingHit = s.side; slingTimer = 8; Render.slings(slingHit);
+      }
+    });
+    if (slingTimer > 0) { slingTimer--; if (!slingTimer) { slingHit = null; Render.slings(); } }
+  },
+  checkTargets() {
+    TARGETS.forEach(t => {
+      if (t.hit) return;
+      if (State.ballX > t.x - t.w / 2 - CFG.BALL_R &&
+          State.ballX < t.x + t.w / 2 + CFG.BALL_R &&
+          State.ballY > t.y - t.h / 2 - CFG.BALL_R &&
+          State.ballY < t.y + t.h / 2 + CFG.BALL_R) {
+        t.hit = true;
+        State.ballVY = Math.abs(State.ballVY) * 0.8;
+        State.hitCombo(); State.addScore(t.pts, t.x, t.y, t.color); Render.targets();
+        if (TARGETS.every(x => x.hit)) {
+          TARGETS.forEach(x => x.hit = false); Render.targets();
+          State.score += 3000; updateHUD('MAX BONUS!');
+          showMsg('💥 MAX BONUS +3000'); Particles.spawn(CFG.W / 2, CFG.H / 2, 0xffff00, 40);
+        }
+      }
+    });
+  },
 
-    this.checkBumpers();this.checkSlings();this.checkTargets();
+  // ── GUTTERS ──
+  checkGutters() {
+    if (State.ballVY <= 0) return;
+    const gutters = [
+      { x1: CFG.WALL_LEFT, y1: CFG.H - 100, x2: CFG.WALL_LEFT + 55, y2: CFG.H - 10 },
+      { x1: CFG.WALL_RIGHT, y1: CFG.H - 100, x2: CFG.WALL_RIGHT - 85, y2: CFG.H - 10 }
+    ];
+    gutters.forEach(g => {
+      if (this.distSeg(State.ballX, State.ballY, g.x1, g.y1, g.x2, g.y2) < CFG.BALL_R + 3) {
+        // Reflect normal
+        const dx = g.x2 - g.x1, dy = g.y2 - g.y1, l = Math.hypot(dx, dy) || 1;
+        const nx = -dy / l, ny = dx / l;
+        const dot = State.ballVX * nx + State.ballVY * ny;
+        State.ballVX -= 2 * dot * nx * 0.8;
+        State.ballVY -= 2 * dot * ny * 0.8;
+      }
+    });
+  },
 
-    const lA=State.flippersReversed?State.rightFlipperActive:State.leftFlipperActive;
-    const rA=State.flippersReversed?State.leftFlipperActive :State.rightFlipperActive;
-    this.checkFlipper(FL,lA);this.checkFlipper(FR,rA);
+  // ── LAUNCH LANE BOOST ──
+  checkLaunchLane() {
+    if (State.ballX > 370 && State.ballY < CFG.H - 150 && State.ballVY > 0) {
+      State.ballVX = Math.max(State.ballVX, 1.5);
+    }
+  },
+
+  // ── MAIN BALL TICK ──
+  tickBall() {
+    State.ballVY += State.azulMode ? CFG.GRAVITY * 0.6 : CFG.GRAVITY;
+    State.ballVX += Tilt.impulse();
+    State.ballVX *= CFG.FRICTION; State.ballVY *= CFG.FRICTION;
+    if (State.azulMode) State.ballVX += (Math.random() - 0.5) * 0.4;
+    State.ballX += State.ballVX; State.ballY += State.ballVY;
+
+    if (State.ballX - CFG.BALL_R < CFG.WALL_LEFT) { State.ballX = CFG.WALL_LEFT + CFG.BALL_R; State.ballVX = Math.abs(State.ballVX) * 0.85; Particles.spawn(CFG.WALL_LEFT, State.ballY, 0x0088ff, 5); }
+    if (State.ballX + CFG.BALL_R > CFG.WALL_RIGHT) { State.ballX = CFG.WALL_RIGHT - CFG.BALL_R; State.ballVX = -Math.abs(State.ballVX) * 0.85; Particles.spawn(CFG.WALL_RIGHT, State.ballY, 0x0088ff, 5); }
+    if (State.ballY - CFG.BALL_R < 55) { State.ballY = 55 + CFG.BALL_R; State.ballVY = Math.abs(State.ballVY) * 0.75; }
+
+    this.checkBumpers(); this.checkSlings(); this.checkTargets();
+
+    const lA = State.flippersReversed ? State.rightFlipperActive : State.leftFlipperActive;
+    const rA = State.flippersReversed ? State.leftFlipperActive : State.rightFlipperActive;
+    this.checkFlipper(FL, lA); this.checkFlipper(FR, rA);
     this.checkGutters();
     this.checkLaunchLane();
 
-    State.azulBalls.forEach(b=>{
-      b.vy+=CFG.GRAVITY;b.vx*=CFG.FRICTION;b.vy*=CFG.FRICTION;b.x+=b.vx;b.y+=b.vy;
-      if(b.x-CFG.BALL_R<CFG.WALL_LEFT){b.x=CFG.WALL_LEFT+CFG.BALL_R;b.vx=Math.abs(b.vx)*0.85;}
-      if(b.x+CFG.BALL_R>CFG.WALL_RIGHT){b.x=CFG.WALL_RIGHT-CFG.BALL_R;b.vx=-Math.abs(b.vx)*0.85;}
-      if(b.y-CFG.BALL_R<55){b.y=55+CFG.BALL_R;b.vy=Math.abs(b.vy)*0.75;}
-      BUMPERS.forEach(bmp=>{
-        const d=this.dist(b.x,b.y,bmp.x,bmp.y);
-        if(d<bmp.r+CFG.BALL_R){
-          const dx=b.x-bmp.x,dy=b.y-bmp.y,l=Math.hypot(dx,dy)||1;
-          b.x=bmp.x+(dx/l)*(bmp.r+CFG.BALL_R+1);b.y=bmp.y+(dy/l)*(bmp.r+CFG.BALL_R+1);
-          const dot=b.vx*(dx/l)+b.vy*(dy/l);
-          b.vx=(b.vx-2*dot*(dx/l))*1.1;b.vy=(b.vy-2*dot*(dy/l))*1.1;
-          State.addScore(bmp.pts,bmp.x,bmp.y,bmp.color);
+    // Azul balls
+    State.azulBalls.forEach(b => {
+      b.vy += CFG.GRAVITY; b.vx *= CFG.FRICTION; b.vy *= CFG.FRICTION; b.x += b.vx; b.y += b.vy;
+      BUMPERS.forEach(bmp => {
+        const d = this.dist(b.x, b.y, bmp.x, bmp.y);
+        if (d < bmp.r + CFG.BALL_R) {
+          const dx = b.x - bmp.x, dy = b.y - bmp.y, l = Math.hypot(dx, dy) || 1;
+          b.x = bmp.x + (dx / l) * (bmp.r + CFG.BALL_R + 1); b.y = bmp.y + (dy / l) * (bmp.r + CFG.BALL_R + 1);
+          const dot = b.vx * (dx / l) + b.vy * (dy / l);
+          b.vx = (b.vx - 2 * dot * (dx / l)) * 1.1; b.vy = (b.vy - 2 * dot * (dy / l)) * 1.1;
+          State.addScore(bmp.pts, bmp.x, bmp.y, bmp.color);
         }
       });
     });
-    State.azulBalls=State.azulBalls.filter(b=>b.y<CFG.H+30);
+    State.azulBalls = State.azulBalls.filter(b => b.y < CFG.H + 30);
 
-    if(State.ballY>CFG.H+20)this.ballLost();
+    if (State.ballY > CFG.H + 20) this.ballLost();
   },
 
-  ballLost(){
-    Particles.spawn(State.ballX,State.ballY,0xff0044,20);
-    State.azulBalls=[];State.azulMode=false;State.mochkilMode=false;
-    State.flippersReversed=false;Modes.clearOverlays();State.balls--;
-    updateHUD(State.balls>0?'BALL LOST':'GAME OVER');
-    showMsg(State.balls>0?'😵 BALL LOST':'💀 GAME OVER');
+  ballLost() {
+    Particles.spawn(State.ballX, State.ballY, 0xff0044, 20);
+    State.azulBalls = []; State.azulMode = false; State.mochkilMode = false;
+    State.flippersReversed = false; Modes.clearOverlays(); State.balls--;
+    updateHUD(State.balls > 0 ? 'BALL LOST' : 'GAME OVER');
+    showMsg(State.balls > 0 ? '😵 BALL LOST' : '💀 GAME OVER');
     Audio.pitch(1);
-    if(State.balls<=0){
-      State.gameActive=false;
-      setTimeout(()=>{State.reset();Render.targets();updateHUD('INSERT COIN');resetBall();},2500);
-    } else setTimeout(resetBall,1000);
-  },
+    if (State.balls <= 0) {
+      State.gameActive = false;
+      setTimeout(() => { State.reset(); Render.targets(); updateHUD('INSERT COIN'); resetBall(); }, 2500);
+    } else setTimeout(resetBall, 1000);
+  }
 };
 
 // ── PARTICLES ─────────────────────────────────
