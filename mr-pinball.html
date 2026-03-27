@@ -175,7 +175,7 @@ const Audio=(()=>{
     try{
       ctx=new(window.AudioContext||window.webkitAudioContext)();
       gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);
-      const r=await fetch('https://maximumreality.github.io/Glitchy/ShiftReality.mp3');
+      const r=await fetch('https://maximumreality.github.io/Glitchy/chaos.mp3');
       buf=await ctx.decodeAudioData(await r.arrayBuffer());
       loaded=true; if(!muted) go();
     }catch(e){document.getElementById('music-btn').textContent='♪ ERR';}
@@ -429,6 +429,8 @@ const Physics={
   },
 
   checkGutters(){
+    // Only deflect when ball is falling — lets the launch shot pass through cleanly
+    if(State.ballVY<=0) return;
     [{x1:CFG.WALL_LEFT,y1:CFG.H-100,x2:CFG.WALL_LEFT+55,y2:CFG.H-10,nx:-(CFG.H-10-(CFG.H-100)),ny:55},
      {x1:CFG.WALL_RIGHT,y1:CFG.H-100,x2:CFG.WALL_RIGHT-55,y2:CFG.H-10,nx:CFG.H-10-(CFG.H-100),ny:-55}
     ].forEach(g=>{
