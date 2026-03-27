@@ -551,15 +551,16 @@ const videoTexture = PIXI.Texture.from(videoElement);
 const lcdScreen = new PIXI.Sprite(videoTexture);
 
 lcdScreen.anchor.set(0.5);
-lcdScreen.width = 160;  // Fits nicely at the top
-lcdScreen.height = 90;
+lcdScreen.width = 140;  // bottom
+lcdScreen.height = 79;
 lcdScreen.x = CFG.W / 2;
-lcdScreen.y = 110; 
+lcdScreen.y = 510; 
 
 // A subtle neon frame to make it look like a real monitor
 const lcdFrame = new PIXI.Graphics();
+  lcdFrame.clear(); 
 lcdFrame.lineStyle(3, 0x00ffff, 0.4);
-lcdFrame.drawRect(lcdScreen.x - 82, lcdScreen.y - 47, 164, 94);
+lcdFrame.drawRect(lcdScreen.x - 72, lcdScreen.y - 41, 144, 82);
 
 // Add it to the gameLayer so it's behind the ball
 gameLayer.addChild(lcdFrame, lcdScreen);
