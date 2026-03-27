@@ -84,6 +84,10 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 </style>
 </head>
 <body>
+  <video id="intro-video" muted loop playsinline crossorigin="anonymous" style="display:none;">
+  <source src="https://maximumreality.xyz/intro.MP4" type="video/mp4">
+</video>
+
 <div id="hud">
   <div class="hud-block">
     <div class="hud-label">SCORE</div>
@@ -541,6 +545,30 @@ const azulEmoji=new PIXI.Text('😼',{fontSize:26});azulEmoji.anchor.set(.5);azu
 const mochEmoji=new PIXI.Text('🐱',{fontSize:26});mochEmoji.anchor.set(.5);mochEmoji.x=CFG.W-90;mochEmoji.y=390;uiLayer.addChild(mochEmoji);
 const mrTitle=new PIXI.Text('MAXIMUM\nREALITY',{fontSize:13,fill:0x00ffff,fontFamily:'Courier New',fontWeight:'bold',align:'center',letterSpacing:3,dropShadow:true,dropShadowColor:0x00ffff,dropShadowBlur:12,dropShadowDistance:0});
 mrTitle.anchor.set(.5);mrTitle.x=CFG.W/2;mrTitle.y=415;uiLayer.addChild(mrTitle);
+  // --- NEW VIDEO SCREEN LOGIC ---
+const videoElement = document.getElementById('intro-video');
+const videoTexture = PIXI.Texture.from(videoElement);
+const lcdScreen = new PIXI.Sprite(videoTexture);
+
+lcdScreen.anchor.set(0.5);
+lcdScreen.width = 160;  // Fits nicely at the top
+lcdScreen.height = 90;
+lcdScreen.x = CFG.W / 2;
+lcdScreen.y = 110; 
+
+// A subtle neon frame to make it look like a real monitor
+const lcdFrame = new PIXI.Graphics();
+lcdFrame.lineStyle(3, 0x00ffff, 0.4);
+lcdFrame.drawRect(lcdScreen.x - 82, lcdScreen.y - 47, 164, 94);
+
+// Add it to the gameLayer so it's behind the ball
+gameLayer.addChild(lcdFrame, lcdScreen);
+
+// Start the video on the first touch (Safari requirement)
+document.addEventListener('pointerdown', () => {
+    videoElement.play();
+}, { once: true });
+
 
 // ── BALL SPRITE with glow layer ───────────────
 // Glow drawn beneath the image so it halos around ball.png
