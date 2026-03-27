@@ -1,0 +1,773 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>MAXIMUM REALITY PINBALL</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    min-height: 100vh;
+    font-family: 'Courier New', monospace;
+    overflow: hidden;
+    touch-action: none;
+  }
+  #hud {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 6px 12px;
+    background: #000;
+    border-bottom: 1px solid #0ff3;
+    z-index: 10;
+  }
+  .hud-block { text-align: center; }
+  .hud-label {
+    font-size: 9px;
+    color: #0ff8;
+    letter-spacing: 3px;
+    text-transform: uppercase;
+  }
+  .hud-value {
+    font-size: 20px;
+    color: #0ff;
+    text-shadow: 0 0 10px #0ff, 0 0 20px #0ff;
+    letter-spacing: 2px;
+    font-weight: bold;
+  }
+  .hud-value.pink { color: #f0f; text-shadow: 0 0 10px #f0f, 0 0 20px #f0f; }
+  #canvas-wrap {
+    position: relative;
+    width: 100%;
+    max-width: 420px;
+    flex: 1;
+  }
+  #canvas-wrap canvas { display: block; width: 100% !important; height: auto !important; }
+  #msg {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 22px;
+    color: #0ff;
+    text-shadow: 0 0 20px #0ff;
+    text-align: center;
+    pointer-events: none;
+    letter-spacing: 3px;
+    opacity: 0;
+    transition: opacity 0.3s;
+    z-index: 20;
+    white-space: nowrap;
+  }
+  #controls {
+    width: 100%;
+    max-width: 420px;
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 16px;
+    background: #000;
+    gap: 8px;
+    z-index: 10;
+  }
+  .flipper-btn {
+    flex: 1;
+    height: 56px;
+    background: linear-gradient(135deg, #0ff2, #f0f2);
+    border: 1px solid #0ff6;
+    border-radius: 8px;
+    color: #0ff;
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    letter-spacing: 2px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-user-select: none;
+    text-shadow: 0 0 8px #0ff;
+    box-shadow: 0 0 12px #0ff3, inset 0 0 8px #0ff1;
+    transition: all 0.1s;
+  }
+  .flipper-btn:active, .flipper-btn.active {
+    background: linear-gradient(135deg, #0ff5, #f0f4);
+    box-shadow: 0 0 24px #0ff8, inset 0 0 16px #0ff4;
+    border-color: #0ff;
+  }
+  #launch-btn {
+    flex: 0.6;
+    background: linear-gradient(135deg, #ff02, #f802);
+    border-color: #f80a;
+    color: #f80;
+    text-shadow: 0 0 8px #f80;
+    box-shadow: 0 0 12px #f803, inset 0 0 8px #f801;
+  }
+  #launch-btn:active, #launch-btn.active {
+    box-shadow: 0 0 24px #f808, inset 0 0 16px #f804;
+    border-color: #f80;
+  }
+</style>
+</head>
+<body>
+
+<div id="hud">
+  <div class="hud-block">
+    <div class="hud-label">SCORE</div>
+    <div class="hud-value" id="score-display">000000</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">MAXIMUM REALITY</div>
+    <div class="hud-value pink" id="mode-display">READY</div>
+  </div>
+  <div class="hud-block">
+    <div class="hud-label">BALLS</div>
+    <div class="hud-value" id="balls-display">3</div>
+  </div>
+</div>
+
+<div id="canvas-wrap">
+  <div id="msg"></div>
+</div>
+
+<div id="controls">
+  <button class="flipper-btn" id="left-btn">◄ LEFT</button>
+  <button class="flipper-btn" id="launch-btn">LAUNCH</button>
+  <button class="flipper-btn" id="right-btn">RIGHT ►</button>
+</div>
+
+<script>
+const W = 420, H = 720;
+const app = new PIXI.Application({
+  width: W, height: H,
+  backgroundColor: 0x000510,
+  antialias: true,
+  resolution: 1,
+});
+document.getElementById('canvas-wrap').prepend(app.view);
+
+// ── Globals ──────────────────────────────────────────────────────────────────
+let score = 0, balls = 3, gameActive = false, ballLaunched = false;
+let leftFlipperActive = false, rightFlipperActive = false;
+let ball, ballVX = 0, ballVY = 0;
+const GRAVITY = 0.22;
+const FRICTION = 0.985;
+const WALL_LEFT = 22, WALL_RIGHT = W - 22;
+let scanlineTime = 0;
+let particles = [];
+let bumperHitCooldowns = {};
+let glitchTimer = 0;
+let modeTimer = 0;
+
+// Score popup texts
+const SCORE_MSGS = [
+  '⚡ NEURAL SURGE', '🐱 AZUL HACKS IN', '😼 MOCHKIL SNACK ATTACK',
+  '🌀 VOID BLOOM', '💀 MAXIMUM REALITY', '🔥 CHAOS ENGINE',
+  '👾 Q-CODE BREACH', '⚡ PROMPT FORGE', '🌸 BLOOM ACTIVATED'
+];
+
+// ── Layers ────────────────────────────────────────────────────────────────────
+const bgLayer = new PIXI.Container();
+const gameLayer = new PIXI.Container();
+const fxLayer = new PIXI.Container();
+const uiLayer = new PIXI.Container();
+app.stage.addChild(bgLayer, gameLayer, fxLayer, uiLayer);
+
+// ── Background grid ───────────────────────────────────────────────────────────
+const bgGfx = new PIXI.Graphics();
+bgLayer.addChild(bgGfx);
+function drawBG() {
+  bgGfx.clear();
+  // Deep space bg
+  bgGfx.beginFill(0x000510); bgGfx.drawRect(0,0,W,H); bgGfx.endFill();
+  // Grid lines
+  bgGfx.lineStyle(1, 0x001830, 0.8);
+  for (let x = 0; x < W; x += 30) { bgGfx.moveTo(x,0); bgGfx.lineTo(x,H); }
+  for (let y = 0; y < H; y += 30) { bgGfx.moveTo(0,y); bgGfx.lineTo(W,y); }
+  // Side walls glow
+  bgGfx.lineStyle(3, 0x00ffff, 0.5);
+  bgGfx.moveTo(WALL_LEFT,0); bgGfx.lineTo(WALL_LEFT,H-100);
+  bgGfx.moveTo(WALL_RIGHT,0); bgGfx.lineTo(WALL_RIGHT,H-100);
+  // Gutter lines
+  bgGfx.lineStyle(2, 0xff00ff, 0.4);
+  bgGfx.moveTo(WALL_LEFT,H-100); bgGfx.lineTo(WALL_LEFT+55,H-10);
+  bgGfx.moveTo(WALL_RIGHT,H-100); bgGfx.lineTo(WALL_RIGHT-55,H-10);
+}
+drawBG();
+
+// ── Scanlines overlay ─────────────────────────────────────────────────────────
+const scanGfx = new PIXI.Graphics();
+fxLayer.addChild(scanGfx);
+
+// ── Bumpers ───────────────────────────────────────────────────────────────────
+const BUMPERS = [
+  { x: 160, y: 180, r: 24, color: 0x00ffff, label: 'Q', pts: 500 },
+  { x: 260, y: 160, r: 24, color: 0xff00ff, label: 'M', pts: 500 },
+  { x: 210, y: 240, r: 24, color: 0xffff00, label: 'R', pts: 750 },
+  { x: 130, y: 290, r: 18, color: 0xff6600, label: '⚡', pts: 300 },
+  { x: 290, y: 290, r: 18, color: 0x00ff88, label: '⚡', pts: 300 },
+  { x: 200, y: 330, r: 18, color: 0xff3366, label: '∞', pts: 400 },
+];
+
+const bumperGfx = new PIXI.Graphics();
+gameLayer.addChild(bumperGfx);
+const bumperTexts = [];
+
+function drawBumpers(hitIdx = -1) {
+  bumperGfx.clear();
+  BUMPERS.forEach((b, i) => {
+    const glow = (hitIdx === i) ? 1.0 : 0.5;
+    const scale = (hitIdx === i) ? 1.25 : 1.0;
+    const r = b.r * scale;
+    // Outer glow ring
+    bumperGfx.lineStyle(4, b.color, glow * 0.6);
+    bumperGfx.drawCircle(b.x, b.y, r + 6);
+    // Fill
+    bumperGfx.lineStyle(2, b.color, 1);
+    bumperGfx.beginFill(hitIdx === i ? b.color : 0x001020, 0.9);
+    bumperGfx.drawCircle(b.x, b.y, r);
+    bumperGfx.endFill();
+  });
+}
+drawBumpers();
+
+// Bumper labels
+BUMPERS.forEach((b, i) => {
+  const txt = new PIXI.Text(b.label, {
+    fontSize: b.r > 20 ? 14 : 11,
+    fill: b.color,
+    fontFamily: 'Courier New',
+    fontWeight: 'bold',
+    align: 'center',
+  });
+  txt.anchor.set(0.5);
+  txt.x = b.x; txt.y = b.y;
+  gameLayer.addChild(txt);
+  bumperTexts.push(txt);
+});
+
+// ── Slingshots ────────────────────────────────────────────────────────────────
+const SLINGS = [
+  { x1: WALL_LEFT, y1: 420, x2: WALL_LEFT+50, y2: 520, side: 'left' },
+  { x1: WALL_RIGHT, y1: 420, x2: WALL_RIGHT-50, y2: 520, side: 'right' },
+];
+const slingGfx = new PIXI.Graphics();
+gameLayer.addChild(slingGfx);
+function drawSlings(hitSide = null) {
+  slingGfx.clear();
+  SLINGS.forEach(s => {
+    const hot = (s.side === hitSide);
+    slingGfx.lineStyle(hot ? 4 : 2, hot ? 0xffff00 : 0x00aaff, hot ? 1 : 0.7);
+    slingGfx.moveTo(s.x1, s.y1);
+    slingGfx.lineTo(s.x2, s.y2);
+    // Small nub
+    slingGfx.lineStyle(0);
+    slingGfx.beginFill(hot ? 0xffff00 : 0x0055aa, 0.8);
+    slingGfx.drawCircle(s.x1, s.y1, 5);
+    slingGfx.drawCircle(s.x2, s.y2, 5);
+    slingGfx.endFill();
+  });
+}
+drawSlings();
+
+// ── Flippers ──────────────────────────────────────────────────────────────────
+const FLIPPER_Y = H - 115;
+const FL = { x: WALL_LEFT + 18, y: FLIPPER_Y, len: 68, baseAngle: 0.42, upAngle: -0.38 };
+const FR = { x: WALL_RIGHT - 18, y: FLIPPER_Y, len: 68, baseAngle: Math.PI - 0.42, upAngle: Math.PI + 0.38 };
+
+const flipperGfx = new PIXI.Graphics();
+gameLayer.addChild(flipperGfx);
+
+function getFlipperAngle(f, active) {
+  return active ? f.upAngle : f.baseAngle;
+}
+
+function drawFlippers() {
+  flipperGfx.clear();
+  [FL, FR].forEach((f, i) => {
+    const active = i === 0 ? leftFlipperActive : rightFlipperActive;
+    const angle = getFlipperAngle(f, active);
+    const ex = f.x + Math.cos(angle) * f.len;
+    const ey = f.y + Math.sin(angle) * f.len;
+    const color = active ? 0x00ffff : 0x0066aa;
+    const glowA = active ? 1.0 : 0.6;
+    // Shadow
+    flipperGfx.lineStyle(10, 0x003366, 0.3);
+    flipperGfx.moveTo(f.x, f.y+2); flipperGfx.lineTo(ex, ey+2);
+    // Main
+    flipperGfx.lineStyle(8, color, glowA);
+    flipperGfx.moveTo(f.x, f.y); flipperGfx.lineTo(ex, ey);
+    // Glow
+    flipperGfx.lineStyle(14, color, 0.18 * glowA);
+    flipperGfx.moveTo(f.x, f.y); flipperGfx.lineTo(ex, ey);
+    // Pivot dot
+    flipperGfx.lineStyle(0);
+    flipperGfx.beginFill(color, 0.9); flipperGfx.drawCircle(f.x, f.y, 5); flipperGfx.endFill();
+  });
+}
+drawFlippers();
+
+// ── Ball ──────────────────────────────────────────────────────────────────────
+const ballGfx = new PIXI.Graphics();
+const BALL_R = 10;
+gameLayer.addChild(ballGfx);
+
+function drawBall(x, y) {
+  ballGfx.clear();
+  // Glow
+  ballGfx.beginFill(0x00ffff, 0.12); ballGfx.drawCircle(x, y, BALL_R+8); ballGfx.endFill();
+  ballGfx.beginFill(0x00ffff, 0.25); ballGfx.drawCircle(x, y, BALL_R+4); ballGfx.endFill();
+  // Ball
+  ballGfx.beginFill(0xaaffff, 1); ballGfx.drawCircle(x, y, BALL_R); ballGfx.endFill();
+  ballGfx.beginFill(0xffffff, 0.6); ballGfx.drawCircle(x-3, y-3, 3); ballGfx.endFill();
+}
+
+let ballX = W - 38, ballY = H - 140;
+drawBall(ballX, ballY);
+
+// ── Launch lane ───────────────────────────────────────────────────────────────
+const laneGfx = new PIXI.Graphics();
+bgLayer.addChild(laneGfx);
+laneGfx.lineStyle(1, 0x00ffff, 0.25);
+laneGfx.moveTo(W-50, 60); laneGfx.lineTo(W-50, H-80);
+laneGfx.lineStyle(1, 0x00ffff, 0.25);
+laneGfx.moveTo(W-24, 60); laneGfx.lineTo(W-24, H-80);
+
+// ── Score targets (targets along top) ────────────────────────────────────────
+const TARGETS = [
+  { x: 80, y: 100, w: 22, h: 10, color: 0xff3366, pts: 200, hit: false },
+  { x: 120, y: 80, w: 22, h: 10, color: 0xff9900, pts: 200, hit: false },
+  { x: 170, y: 68, w: 22, h: 10, color: 0xffff00, pts: 200, hit: false },
+  { x: 220, y: 62, w: 22, h: 10, color: 0x00ff88, pts: 200, hit: false },
+  { x: 270, y: 68, w: 22, h: 10, color: 0x00ffff, pts: 200, hit: false },
+  { x: 318, y: 80, w: 22, h: 10, color: 0xff00ff, pts: 200, hit: false },
+  { x: 358, y: 100, w: 22, h: 10, color: 0x8800ff, pts: 200, hit: false },
+];
+
+const targetGfx = new PIXI.Graphics();
+gameLayer.addChild(targetGfx);
+function drawTargets() {
+  targetGfx.clear();
+  TARGETS.forEach(t => {
+    targetGfx.lineStyle(0);
+    targetGfx.beginFill(t.hit ? 0x001020 : t.color, t.hit ? 0.3 : 0.9);
+    targetGfx.drawRect(t.x - t.w/2, t.y - t.h/2, t.w, t.h);
+    targetGfx.endFill();
+    if (!t.hit) {
+      targetGfx.lineStyle(1, t.color, 0.5);
+      targetGfx.drawRect(t.x - t.w/2 - 2, t.y - t.h/2 - 2, t.w+4, t.h+4);
+    }
+  });
+}
+drawTargets();
+
+// ── Azul & Mochkil emoji labels ───────────────────────────────────────────────
+const azulLabel = new PIXI.Text('😼', { fontSize: 28 });
+azulLabel.anchor.set(0.5); azulLabel.x = 80; azulLabel.y = 390;
+uiLayer.addChild(azulLabel);
+
+const mochkilLabel = new PIXI.Text('🐱', { fontSize: 28 });
+mochkilLabel.anchor.set(0.5); mochkilLabel.x = W-80; mochkilLabel.y = 390;
+uiLayer.addChild(mochkilLabel);
+
+const mrTitle = new PIXI.Text('MAXIMUM\nREALITY', {
+  fontSize: 13, fill: 0x00ffff, fontFamily: 'Courier New',
+  fontWeight: 'bold', align: 'center', letterSpacing: 3,
+  dropShadow: true, dropShadowColor: 0x00ffff, dropShadowBlur: 12, dropShadowDistance: 0,
+});
+mrTitle.anchor.set(0.5); mrTitle.x = W/2; mrTitle.y = 410;
+uiLayer.addChild(mrTitle);
+
+// ── Particles ─────────────────────────────────────────────────────────────────
+const particleGfx = new PIXI.Graphics();
+fxLayer.addChild(particleGfx);
+
+function spawnParticles(x, y, color, count = 12) {
+  for (let i = 0; i < count; i++) {
+    const angle = (Math.PI * 2 * i / count) + Math.random() * 0.5;
+    const speed = 2 + Math.random() * 4;
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: 1.0,
+      color,
+      r: 2 + Math.random() * 3,
+    });
+  }
+}
+
+function updateParticles() {
+  particleGfx.clear();
+  particles = particles.filter(p => p.life > 0.02);
+  particles.forEach(p => {
+    p.x += p.vx; p.y += p.vy;
+    p.vy += 0.1; p.vx *= 0.96;
+    p.life -= 0.04;
+    particleGfx.beginFill(p.color, p.life * 0.85);
+    particleGfx.drawCircle(p.x, p.y, p.r * p.life);
+    particleGfx.endFill();
+  });
+}
+
+// ── HUD update ────────────────────────────────────────────────────────────────
+function updateHUD(mode) {
+  document.getElementById('score-display').textContent = String(score).padStart(6,'0');
+  document.getElementById('balls-display').textContent = balls;
+  if (mode) document.getElementById('mode-display').textContent = mode;
+}
+
+// ── Flash message ─────────────────────────────────────────────────────────────
+let msgTimer = null;
+function showMsg(txt) {
+  const el = document.getElementById('msg');
+  el.textContent = txt;
+  el.style.opacity = '1';
+  clearTimeout(msgTimer);
+  msgTimer = setTimeout(() => { el.style.opacity = '0'; }, 1200);
+}
+
+// ── Physics helpers ───────────────────────────────────────────────────────────
+function dist(ax, ay, bx, by) {
+  return Math.sqrt((ax-bx)**2 + (ay-by)**2);
+}
+
+function reflectOffCircle(bx, by, cx, cy) {
+  const dx = bx - cx, dy = by - cy;
+  const len = Math.sqrt(dx*dx + dy*dy);
+  const nx = dx/len, ny = dy/len;
+  const dot = ballVX*nx + ballVY*ny;
+  ballVX = (ballVX - 2*dot*nx) * 1.15;
+  ballVY = (ballVY - 2*dot*ny) * 1.15;
+}
+
+function getFlipperEnd(f, active) {
+  const angle = getFlipperAngle(f, active);
+  return { x: f.x + Math.cos(angle)*f.len, y: f.y + Math.sin(angle)*f.len };
+}
+
+function distToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx-ax, dy = by-ay;
+  const lenSq = dx*dx+dy*dy;
+  if (lenSq === 0) return dist(px,py,ax,ay);
+  let t = ((px-ax)*dx + (py-ay)*dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return dist(px, py, ax+t*dx, ay+t*dy);
+}
+
+function closestPointOnSegment(px, py, ax, ay, bx, by) {
+  const dx = bx-ax, dy = by-ay;
+  const lenSq = dx*dx+dy*dy;
+  if (lenSq === 0) return { x: ax, y: ay };
+  let t = ((px-ax)*dx + (py-ay)*dy) / lenSq;
+  t = Math.max(0, Math.min(1, t));
+  return { x: ax+t*dx, y: ay+t*dy };
+}
+
+// ── Flipper bounce ────────────────────────────────────────────────────────────
+function checkFlipperCollision(f, active) {
+  const fe = getFlipperEnd(f, active);
+  const d = distToSegment(ballX, ballY, f.x, f.y, fe.x, fe.y);
+  if (d < BALL_R + 5) {
+    const cp = closestPointOnSegment(ballX, ballY, f.x, f.y, fe.x, fe.y);
+    const nx = ballX - cp.x, ny = ballY - cp.y;
+    const len = Math.sqrt(nx*nx + ny*ny) || 1;
+    const push = (BALL_R + 6 - d);
+    ballX += (nx/len) * push;
+    ballY += (ny/len) * push;
+    // Reflect
+    const dot = ballVX*(nx/len) + ballVY*(ny/len);
+    ballVX -= 2*dot*(nx/len);
+    ballVY -= 2*dot*(ny/len);
+    // Flipper kick boost
+    if (active) {
+      ballVY -= 5 + Math.abs(ballVX) * 0.3;
+      ballVX *= 1.1;
+    }
+    ballVX = Math.max(-12, Math.min(12, ballVX));
+    ballVY = Math.max(-16, Math.min(10, ballVY));
+    spawnParticles(cp.x, cp.y, 0x00ffff, 8);
+  }
+}
+
+// ── Slingshot collision ───────────────────────────────────────────────────────
+let slingHitSide = null, slingHitTimer = 0;
+function checkSlingshots() {
+  SLINGS.forEach(s => {
+    const d = distToSegment(ballX, ballY, s.x1, s.y1, s.x2, s.y2);
+    if (d < BALL_R + 4) {
+      const cp = closestPointOnSegment(ballX, ballY, s.x1, s.y1, s.x2, s.y2);
+      const nx = ballX-cp.x, ny = ballY-cp.y;
+      const len = Math.sqrt(nx*nx+ny*ny)||1;
+      const push = BALL_R+5-d;
+      ballX += (nx/len)*push; ballY += (ny/len)*push;
+      const dot = ballVX*(nx/len)+ballVY*(ny/len);
+      ballVX = (ballVX - 2*dot*(nx/len)) * 1.3;
+      ballVY = (ballVY - 2*dot*(ny/len)) * 1.3;
+      addScore(150, cp.x, cp.y, s.side === 'left' ? 0x00aaff : 0xffaa00);
+      slingHitSide = s.side;
+      slingHitTimer = 8;
+      drawSlings(slingHitSide);
+    }
+  });
+  if (slingHitTimer > 0) {
+    slingHitTimer--;
+    if (slingHitTimer === 0) { slingHitSide = null; drawSlings(); }
+  }
+}
+
+// ── Score helper ──────────────────────────────────────────────────────────────
+function addScore(pts, x, y, color = 0xffff00) {
+  score += pts;
+  updateHUD();
+  spawnParticles(x, y, color, 10);
+  // Floating score text
+  const t = new PIXI.Text('+' + pts, {
+    fontSize: 14, fill: color, fontFamily: 'Courier New', fontWeight: 'bold',
+    dropShadow: true, dropShadowColor: color, dropShadowBlur: 8, dropShadowDistance: 0,
+  });
+  t.anchor.set(0.5); t.x = x; t.y = y;
+  t._life = 1.0; t._vy = -1.5;
+  fxLayer.addChild(t);
+  // Auto-remove after fade
+  const rem = () => { if (fxLayer.children.includes(t)) fxLayer.removeChild(t); };
+  setTimeout(rem, 900);
+}
+
+// ── Reset ball to lane ────────────────────────────────────────────────────────
+function resetBall() {
+  ballX = W - 38; ballY = H - 140;
+  ballVX = 0; ballVY = 0;
+  ballLaunched = false;
+  updateHUD('READY');
+}
+
+// ── Launch ────────────────────────────────────────────────────────────────────
+function launchBall() {
+  if (ballLaunched) return;
+  if (!gameActive) { gameActive = true; }
+  ballVY = -(12 + Math.random() * 3);
+  ballVX = -(1.5 + Math.random());
+  ballLaunched = true;
+  updateHUD('PLAY!');
+}
+
+// ── Ball lost ─────────────────────────────────────────────────────────────────
+function ballLost() {
+  spawnParticles(ballX, ballY, 0xff0044, 20);
+  balls--;
+  updateHUD(balls > 0 ? 'BALL LOST' : 'GAME OVER');
+  showMsg(balls > 0 ? '😵 BALL LOST' : '💀 GAME OVER');
+  if (balls <= 0) {
+    gameActive = false;
+    setTimeout(() => {
+      balls = 3; score = 0;
+      TARGETS.forEach(t => t.hit = false);
+      drawTargets();
+      updateHUD('INSERT COIN');
+      resetBall();
+    }, 2500);
+  } else {
+    setTimeout(resetBall, 1000);
+  }
+}
+
+// ── Bumper collision ──────────────────────────────────────────────────────────
+let bumperHitIdx = -1, bumperHitTimer = 0;
+function checkBumpers() {
+  BUMPERS.forEach((b, i) => {
+    const d = dist(ballX, ballY, b.x, b.y);
+    if (d < b.r + BALL_R) {
+      if (!bumperHitCooldowns[i]) {
+        reflectOffCircle(ballX, ballY, b.x, b.y);
+        // Push out
+        const dx = ballX-b.x, dy = ballY-b.y;
+        const len = Math.sqrt(dx*dx+dy*dy)||1;
+        ballX = b.x + (dx/len)*(b.r+BALL_R+1);
+        ballY = b.y + (dy/len)*(b.r+BALL_R+1);
+        addScore(b.pts, b.x, b.y, b.color);
+        const msgIdx = Math.floor(Math.random()*SCORE_MSGS.length);
+        if (Math.random() < 0.3) showMsg(SCORE_MSGS[msgIdx]);
+        bumperHitIdx = i; bumperHitTimer = 10;
+        drawBumpers(i);
+        bumperHitCooldowns[i] = 15;
+      }
+    }
+    if (bumperHitCooldowns[i] > 0) bumperHitCooldowns[i]--;
+  });
+  if (bumperHitTimer > 0) {
+    bumperHitTimer--;
+    if (bumperHitTimer === 0) { bumperHitIdx = -1; drawBumpers(-1); }
+  }
+}
+
+// ── Target collision ──────────────────────────────────────────────────────────
+function checkTargets() {
+  TARGETS.forEach(t => {
+    if (t.hit) return;
+    if (
+      ballX > t.x-t.w/2-BALL_R && ballX < t.x+t.w/2+BALL_R &&
+      ballY > t.y-t.h/2-BALL_R && ballY < t.y+t.h/2+BALL_R
+    ) {
+      t.hit = true;
+      ballVY = Math.abs(ballVY)*0.8;
+      addScore(t.pts, t.x, t.y, t.color);
+      drawTargets();
+      // Check all hit
+      if (TARGETS.every(x => x.hit)) {
+        TARGETS.forEach(x => x.hit = false);
+        drawTargets();
+        score += 3000;
+        updateHUD('MAX BONUS!');
+        showMsg('💥 MAX BONUS +3000');
+        spawnParticles(W/2, H/2, 0xffff00, 40);
+      }
+    }
+  });
+}
+
+// ── Main tick ─────────────────────────────────────────────────────────────────
+app.ticker.add(() => {
+  if (!ballLaunched) {
+    drawBall(ballX, ballY);
+    return;
+  }
+
+  // Physics
+  ballVY += GRAVITY;
+  ballVX *= FRICTION;
+  ballVY *= FRICTION;
+  ballX += ballVX;
+  ballY += ballVY;
+
+  // Wall collisions
+  if (ballX - BALL_R < WALL_LEFT) {
+    ballX = WALL_LEFT + BALL_R;
+    ballVX = Math.abs(ballVX) * 0.85;
+    spawnParticles(WALL_LEFT, ballY, 0x0088ff, 5);
+  }
+  if (ballX + BALL_R > WALL_RIGHT) {
+    ballX = WALL_RIGHT - BALL_R;
+    ballVX = -Math.abs(ballVX) * 0.85;
+    spawnParticles(WALL_RIGHT, ballY, 0x0088ff, 5);
+  }
+  // Ceiling
+  if (ballY - BALL_R < 55) {
+    ballY = 55 + BALL_R;
+    ballVY = Math.abs(ballVY) * 0.75;
+  }
+
+  // Bumpers
+  checkBumpers();
+  // Slingshots
+  checkSlingshots();
+  // Targets
+  checkTargets();
+  // Flippers
+  checkFlipperCollision(FL, leftFlipperActive);
+  checkFlipperCollision(FR, rightFlipperActive);
+
+  // Gutter / ball lost (bottom gap between flippers)
+  const flEnd = getFlipperEnd(FL, leftFlipperActive);
+  const frEnd = getFlipperEnd(FR, rightFlipperActive);
+  // Gutter walls (diagonal)
+  // Left gutter wall
+  {
+    const d = distToSegment(ballX, ballY, WALL_LEFT, H-100, WALL_LEFT+55, H-10);
+    if (d < BALL_R+3) {
+      const nx = -(H-10-(H-100)), ny = (WALL_LEFT+55-WALL_LEFT);
+      const len = Math.sqrt(nx*nx+ny*ny);
+      const dot = ballVX*(nx/len)+ballVY*(ny/len);
+      ballVX -= 2*dot*(nx/len)*0.8; ballVY -= 2*dot*(ny/len)*0.8;
+    }
+  }
+  // Right gutter wall
+  {
+    const d = distToSegment(ballX, ballY, WALL_RIGHT, H-100, WALL_RIGHT-55, H-10);
+    if (d < BALL_R+3) {
+      const nx = (H-10-(H-100)), ny = (WALL_RIGHT-55-WALL_RIGHT);
+      const len = Math.sqrt(nx*nx+ny*ny);
+      const dot = ballVX*(nx/len)+ballVY*(ny/len);
+      ballVX -= 2*dot*(nx/len)*0.8; ballVY -= 2*dot*(ny/len)*0.8;
+    }
+  }
+
+  // Ball out the bottom
+  if (ballY > H + 20) ballLost();
+
+  drawBall(ballX, ballY);
+  drawFlippers();
+  updateParticles();
+
+  // Fade score floaters
+  fxLayer.children.forEach(c => {
+    if (c._life !== undefined) {
+      c._life -= 0.04;
+      c.y += c._vy || 0;
+      c.alpha = c._life;
+    }
+  });
+
+  // Scanlines
+  scanlineTime += 0.01;
+  scanGfx.clear();
+  for (let y = 0; y < H; y += 4) {
+    const flicker = 0.04 + Math.sin(y * 0.1 + scanlineTime) * 0.01;
+    scanGfx.beginFill(0x000000, flicker);
+    scanGfx.drawRect(0, y, W, 2);
+    scanGfx.endFill();
+  }
+
+  // Cat emoji bob
+  azulLabel.y = 390 + Math.sin(scanlineTime * 2) * 3;
+  mochkilLabel.y = 390 + Math.sin(scanlineTime * 2 + 1) * 3;
+
+  // Glitch title
+  glitchTimer += 0.02;
+  if (Math.random() < 0.008) {
+    mrTitle.x = W/2 + (Math.random()-0.5)*10;
+    mrTitle.alpha = 0.6 + Math.random()*0.4;
+  } else {
+    mrTitle.x += (W/2 - mrTitle.x) * 0.2;
+    mrTitle.alpha += (1 - mrTitle.alpha) * 0.1;
+  }
+});
+
+// ── Input ─────────────────────────────────────────────────────────────────────
+const leftBtn = document.getElementById('left-btn');
+const rightBtn = document.getElementById('right-btn');
+const launchBtnEl = document.getElementById('launch-btn');
+
+leftBtn.addEventListener('pointerdown', e => { e.preventDefault(); leftFlipperActive = true; leftBtn.classList.add('active'); });
+leftBtn.addEventListener('pointerup', e => { e.preventDefault(); leftFlipperActive = false; leftBtn.classList.remove('active'); });
+leftBtn.addEventListener('pointerleave', e => { leftFlipperActive = false; leftBtn.classList.remove('active'); });
+
+rightBtn.addEventListener('pointerdown', e => { e.preventDefault(); rightFlipperActive = true; rightBtn.classList.add('active'); });
+rightBtn.addEventListener('pointerup', e => { e.preventDefault(); rightFlipperActive = false; rightBtn.classList.remove('active'); });
+rightBtn.addEventListener('pointerleave', e => { rightFlipperActive = false; rightBtn.classList.remove('active'); });
+
+launchBtnEl.addEventListener('pointerdown', e => { e.preventDefault(); launchBall(); launchBtnEl.classList.add('active'); });
+launchBtnEl.addEventListener('pointerup', e => { launchBtnEl.classList.remove('active'); });
+
+// Keyboard support
+document.addEventListener('keydown', e => {
+  if (e.key === 'z' || e.key === 'Z' || e.key === 'ArrowLeft') leftFlipperActive = true;
+  if (e.key === '/' || e.key === 'ArrowRight') rightFlipperActive = true;
+  if (e.key === ' ' || e.key === 'ArrowUp') launchBall();
+});
+document.addEventListener('keyup', e => {
+  if (e.key === 'z' || e.key === 'Z' || e.key === 'ArrowLeft') leftFlipperActive = false;
+  if (e.key === '/' || e.key === 'ArrowRight') rightFlipperActive = false;
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+updateHUD('INSERT COIN');
+resetBall();
+showMsg('🎰 MAXIMUM REALITY');
+</script>
+</body>
+</html>
