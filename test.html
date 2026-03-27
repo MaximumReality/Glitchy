@@ -148,6 +148,9 @@ const CFG={
   AZUL_MODE_DURATION:360,
   MOCHKIL_MODE_DURATION:300,
   TILT_MAX:0.65,
+  LANE_LEFT:370,   // inner wall of launch lane
+  LANE_RIGHT:396,  // outer wall of launch lane (just inside WALL_RIGHT)
+  LANE_EXIT_Y:62,  // y where ball exits tube into playfield
   SCORE_MSGS:[
     '⚡ NEURAL SURGE','😼 AZUL HACKS IN','🐱 MOCHKIL SNACK ATTACK',
     '🌀 VOID BLOOM','💀 MAXIMUM REALITY','🔥 CHAOS ENGINE',
@@ -175,7 +178,7 @@ const Audio=(()=>{
     try{
       ctx=new(window.AudioContext||window.webkitAudioContext)();
       gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);
-      const r=await fetch('https://maximumreality.github.io/Glitchy/chaos.mp3');
+      const r=await fetch('https://maximumreality.github.io/Glitchy/ShiftReality.mp3');
       buf=await ctx.decodeAudioData(await r.arrayBuffer());
       loaded=true; if(!muted) go();
     }catch(e){document.getElementById('music-btn').textContent='♪ ERR';}
@@ -235,13 +238,14 @@ const State={
   azulMode:false,azulTimer:0,azulBalls:[],
   mochkilMode:false,mochkilTimer:0,
   ballX:382,ballY:565,ballVX:0,ballVY:0,
+  inLane:true,   // true while ball is travelling up the plunger lane
   scanlineTime:0,idleTimer:0,
 
   reset(){
     this.score=0;this.balls=3;this.gameActive=false;this.ballLaunched=false;
     this.comboCount=0;this.comboMultiplier=1;
     this.azulMode=false;this.azulTimer=0;this.azulBalls=[];
-    this.mochkilMode=false;this.flippersReversed=false;
+    this.mochkilMode=false;this.flippersReversed=false;this.inLane=true;
     clearTimeout(this.comboDecayTimer);
     TARGETS.forEach(t=>t.hit=false);
   },
@@ -307,42 +311,28 @@ const FL={x:CFG.WALL_LEFT+14, y:CFG.FLIPPER_Y,len:CFG.FLIPPER_LEN,baseAngle:0.40
 const FR={x:CFG.WALL_RIGHT-14,y:CFG.FLIPPER_Y,len:CFG.FLIPPER_LEN,baseAngle:Math.PI-0.40,upAngle:Math.PI+0.36};
 
 // ── PHYSICS ───────────────────────────────────
-const Physics = {
-  dist(ax, ay, bx, by) {
-    return Math.hypot(bx - ax, by - ay);
+const Physics={
+  dist(ax,ay,bx,by){return Math.hypot(ax-bx,ay-by);},
+
+  reflectCircle(cx,cy){
+    const dx=State.ballX-cx,dy=State.ballY-cy,l=Math.hypot(dx,dy)||1;
+    const nx=dx/l,ny=dy/l,dot=State.ballVX*nx+State.ballVY*ny;
+    State.ballVX=(State.ballVX-2*dot*nx)*1.15;
+    State.ballVY=(State.ballVY-2*dot*ny)*1.15;
   },
 
-  reflectCircle(cx, cy, r, vx, vy, px, py) {
-    const dx = px - cx;
-    const dy = py - cy;
-    const d = Math.hypot(dx, dy) || 1;
-    const nx = dx / d;
-    const ny = dy / d;
-    const dot = vx * nx + vy * ny;
-    return {
-      vx: vx - 2 * dot * nx,
-      vy: vy - 2 * dot * ny
-    };
+  distSeg(px,py,ax,ay,bx,by){
+    const dx=bx-ax,dy=by-ay,lsq=dx*dx+dy*dy;
+    if(!lsq) return this.dist(px,py,ax,ay);
+    const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/lsq));
+    return this.dist(px,py,ax+t*dx,ay+t*dy);
   },
 
-  distSeg(px, py, ax, ay, bx, by) {
-    const dx = bx - ax;
-    const dy = by - ay;
-    if (dx === 0 && dy === 0) return Math.hypot(px - ax, py - ay);
-    let t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
-    t = Math.max(0, Math.min(1, t));
-    const nearestX = ax + t * dx;
-    const nearestY = ay + t * dy;
-    return Math.hypot(px - nearestX, py - nearestY);
-  },
-
-  closestSeg(px, py, ax, ay, bx, by) {
-    const dx = bx - ax;
-    const dy = by - ay;
-    if (dx === 0 && dy === 0) return {x: ax, y: ay};
-    let t = ((px - ax) * dx + (py - ay) * dy) / (dx * dx + dy * dy);
-    t = Math.max(0, Math.min(1, t));
-    return { x: ax + t * dx, y: ay + t * dy };
+  closestSeg(px,py,ax,ay,bx,by){
+    const dx=bx-ax,dy=by-ay,lsq=dx*dx+dy*dy;
+    if(!lsq) return{x:ax,y:ay};
+    const t=Math.max(0,Math.min(1,((px-ax)*dx+(py-ay)*dy)/lsq));
+    return{x:ax+t*dx,y:ay+t*dy};
   },
 
   fAngle(f,a){return a?f.upAngle:f.baseAngle;},
@@ -443,31 +433,19 @@ const Physics = {
   },
 
   checkGutters(){
-  // ONLY check gutter collision when ball is falling (VY > 0)
-  // This allows the ball to launch upward without hitting the gutter walls
-  if (State.ballVY <= 0) return;
-  
-  const gutters = [
-    {x1:CFG.WALL_LEFT, y1:CFG.H-100, x2:CFG.WALL_LEFT+55, y2:CFG.H-10, nx:-(CFG.H-10-(CFG.H-100)), ny:55},
-    {x1:CFG.WALL_RIGHT, y1:CFG.H-100, x2:CFG.WALL_RIGHT-85, y2:CFG.H-10, nx:CFG.H-10-(CFG.H-100), ny:-85}
-  ];
+    // Only deflect when ball is falling — lets the launch shot pass through cleanly
+    if(State.ballVY<=0) return;
+    [{x1:CFG.WALL_LEFT,y1:CFG.H-100,x2:CFG.WALL_LEFT+55,y2:CFG.H-10,nx:-(CFG.H-10-(CFG.H-100)),ny:55},
+     {x1:CFG.WALL_RIGHT,y1:CFG.H-100,x2:CFG.WALL_RIGHT-55,y2:CFG.H-10,nx:CFG.H-10-(CFG.H-100),ny:-55}
+    ].forEach(g=>{
+      if(this.distSeg(State.ballX,State.ballY,g.x1,g.y1,g.x2,g.y2)<CFG.BALL_R+3){
+        const l=Math.hypot(g.nx,g.ny),nx=g.nx/l,ny=g.ny/l;
+        const dot=State.ballVX*nx+State.ballVY*ny;
+        State.ballVX-=2*dot*nx*0.8;State.ballVY-=2*dot*ny*0.8;
+      }
+    });
+  },
 
-  gutters.forEach(g => {
-    if(this.distSeg(State.ballX,State.ballY,g.x1,g.y1,g.x2,g.y2) < CFG.BALL_R+3){
-      const l = Math.hypot(g.nx,g.ny) || 1;
-      const nx = g.nx/l, ny = g.ny/l;
-      const dot = State.ballVX*nx + State.ballVY*ny;
-      State.ballVX -= 2*dot*nx*0.8;
-      State.ballVY -= 2*dot*ny*0.8;
-    }
-  });
-},
-  checkLaunchLane(){
-  if (State.ballX > 370 && State.ballY < CFG.H - 150 && State.ballVY > 0){
-    State.ballVX = Math.max(State.ballVX, 1.5);
-  }
-},
-  
   tickBall(){
     State.ballVY+=State.azulMode?CFG.GRAVITY*0.6:CFG.GRAVITY;
     State.ballVX+=Tilt.impulse();
@@ -475,6 +453,27 @@ const Physics = {
     if(State.azulMode)State.ballVX+=(Math.random()-0.5)*0.4;
     State.ballX+=State.ballVX;State.ballY+=State.ballVY;
 
+    // ── LANE MODE: ball is inside the plunger tube ──
+    if(State.inLane){
+      // Pin ball to centre of lane while travelling up
+      State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2; // x≈383
+      State.ballVX=0;
+      // Once ball clears the top of the lane, release it into the playfield
+      if(State.ballY-CFG.BALL_R<=CFG.LANE_EXIT_Y){
+        State.inLane=false;
+        State.ballY=CFG.LANE_EXIT_Y+CFG.BALL_R;
+        // Give a gentle leftward nudge so it arcs into the playfield
+        State.ballVX=-1.8;
+        State.ballVY=Math.min(State.ballVY, 0); // don't bounce back down
+        Particles.spawn(State.ballX,State.ballY,0x00ffff,12);
+        showMsg('🚀 BALL IN PLAY!');
+      }
+      Render.ball();Render.flippers();Render.scan(State.scanlineTime);
+      Particles.update();Render.floaters();
+      return; // skip all playfield collision while in lane
+    }
+
+    // ── PLAYFIELD MODE ──
     if(State.ballX-CFG.BALL_R<CFG.WALL_LEFT){State.ballX=CFG.WALL_LEFT+CFG.BALL_R;State.ballVX=Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_LEFT,State.ballY,0x0088ff,5);}
     if(State.ballX+CFG.BALL_R>CFG.WALL_RIGHT){State.ballX=CFG.WALL_RIGHT-CFG.BALL_R;State.ballVX=-Math.abs(State.ballVX)*0.85;Particles.spawn(CFG.WALL_RIGHT,State.ballY,0x0088ff,5);}
     if(State.ballY-CFG.BALL_R<55){State.ballY=55+CFG.BALL_R;State.ballVY=Math.abs(State.ballVY)*0.75;}
@@ -485,7 +484,6 @@ const Physics = {
     const rA=State.flippersReversed?State.leftFlipperActive :State.rightFlipperActive;
     this.checkFlipper(FL,lA);this.checkFlipper(FR,rA);
     this.checkGutters();
-    this.checkLaunchLane();
 
     State.azulBalls.forEach(b=>{
       b.vy+=CFG.GRAVITY;b.vx*=CFG.FRICTION;b.vy*=CFG.FRICTION;b.x+=b.vx;b.y+=b.vy;
@@ -511,7 +509,7 @@ const Physics = {
   ballLost(){
     Particles.spawn(State.ballX,State.ballY,0xff0044,20);
     State.azulBalls=[];State.azulMode=false;State.mochkilMode=false;
-    State.flippersReversed=false;Modes.clearOverlays();State.balls--;
+    State.flippersReversed=false;State.inLane=true;Modes.clearOverlays();State.balls--;
     updateHUD(State.balls>0?'BALL LOST':'GAME OVER');
     showMsg(State.balls>0?'😵 BALL LOST':'💀 GAME OVER');
     Audio.pitch(1);
@@ -580,7 +578,7 @@ const Render={
     bgGfx.moveTo(CFG.WALL_RIGHT,0);bgGfx.lineTo(CFG.WALL_RIGHT,CFG.H-100);
     bgGfx.lineStyle(2,0xff00ff,.4);
     bgGfx.moveTo(CFG.WALL_LEFT,CFG.H-100);bgGfx.lineTo(CFG.WALL_LEFT+55,CFG.H-10);
-    bgGfx.moveTo(CFG.WALL_RIGHT,CFG.H-100);bgGfx.lineTo(CFG.WALL_RIGHT-85,CFG.H-10);
+    bgGfx.moveTo(CFG.WALL_RIGHT,CFG.H-100);bgGfx.lineTo(CFG.WALL_RIGHT-55,CFG.H-10);
     laneGfx.clear();laneGfx.lineStyle(1,0x00ffff,.25);
     laneGfx.moveTo(CFG.W-50,60);laneGfx.lineTo(CFG.W-50,CFG.H-80);
     laneGfx.moveTo(CFG.W-24,60);laneGfx.lineTo(CFG.W-24,CFG.H-80);
@@ -707,16 +705,22 @@ function showMsg(txt){
   clearTimeout(msgT);msgT=setTimeout(()=>el.style.opacity='0',1400);
 }
 function resetBall(){
-  State.ballX=CFG.W-38;State.ballY=CFG.H-140;State.ballVX=0;State.ballVY=0;
-  State.ballLaunched=false;State.comboCount=0;State.comboMultiplier=1;
+  // Park ball at bottom of plunger lane
+  State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
+  State.ballY=CFG.H-60;
+  State.ballVX=0;State.ballVY=0;
+  State.ballLaunched=false;State.inLane=true;
+  State.comboCount=0;State.comboMultiplier=1;
   document.getElementById('combo-bar').style.width='0%';
   updateHUD('READY');Audio.pitch(1);
 }
 function launchBall(){
   if(State.ballLaunched)return;
   State.gameActive=true;
-  State.ballVY=-(12+Math.random()*3);State.ballVX=-(1.5+Math.random());
-  State.ballLaunched=true;State.idleTimer=0;updateHUD('PLAY!');
+  // Fire straight up the tube — no X velocity until it exits at the top
+  State.ballVY=-(15+Math.random()*2);
+  State.ballVX=0;
+  State.ballLaunched=true;State.idleTimer=0;updateHUD('LAUNCHING!');
 }
 
 // ── MAIN LOOP ─────────────────────────────────
