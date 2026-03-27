@@ -148,9 +148,12 @@ const CFG={
   AZUL_MODE_DURATION:360,
   MOCHKIL_MODE_DURATION:300,
   TILT_MAX:0.65,
-  LANE_LEFT:370,   // inner wall of launch lane
-  LANE_RIGHT:396,  // outer wall of launch lane (just inside WALL_RIGHT)
-  LANE_EXIT_Y:62,  // y where ball exits tube into playfield
+  LANE_LEFT:370,
+  LANE_RIGHT:396,
+  LANE_EXIT_Y:62,
+  LAUNCH_MIN_POWER:14,
+  LAUNCH_MAX_POWER:30,
+  CHARGE_SPEED:0.28,
   SCORE_MSGS:[
     '⚡ NEURAL SURGE','😼 AZUL HACKS IN','🐱 MOCHKIL SNACK ATTACK',
     '🌀 VOID BLOOM','💀 MAXIMUM REALITY','🔥 CHAOS ENGINE',
@@ -178,7 +181,7 @@ const Audio=(()=>{
     try{
       ctx=new(window.AudioContext||window.webkitAudioContext)();
       gain=ctx.createGain();gain.gain.value=0;gain.connect(ctx.destination);
-      const r=await fetch('https://maximumreality.github.io/Glitchy/ShiftReality.mp3');
+      const r=await fetch('https://maximumreality.github.io/Glitchy/chaos.mp3');
       buf=await ctx.decodeAudioData(await r.arrayBuffer());
       loaded=true; if(!muted) go();
     }catch(e){document.getElementById('music-btn').textContent='♪ ERR';}
@@ -238,7 +241,8 @@ const State={
   azulMode:false,azulTimer:0,azulBalls:[],
   mochkilMode:false,mochkilTimer:0,
   ballX:382,ballY:565,ballVX:0,ballVY:0,
-  inLane:true,   // true while ball is travelling up the plunger lane
+  inLane:true,
+  launchPower:14,isCharging:false,
   scanlineTime:0,idleTimer:0,
 
   reset(){
@@ -246,6 +250,7 @@ const State={
     this.comboCount=0;this.comboMultiplier=1;
     this.azulMode=false;this.azulTimer=0;this.azulBalls=[];
     this.mochkilMode=false;this.flippersReversed=false;this.inLane=true;
+    this.launchPower=CFG.LAUNCH_MIN_POWER;this.isCharging=false;
     clearTimeout(this.comboDecayTimer);
     TARGETS.forEach(t=>t.hit=false);
   },
@@ -455,22 +460,20 @@ const Physics={
 
     // ── LANE MODE: ball is inside the plunger tube ──
     if(State.inLane){
-      // Pin ball to centre of lane while travelling up
-      State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2; // x≈383
+      State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
       State.ballVX=0;
-      // Once ball clears the top of the lane, release it into the playfield
+      // Cancel gravity so the launch power carries it all the way up
+      State.ballVY-=CFG.GRAVITY;
+      // Once ball clears the top of the lane, release into playfield
       if(State.ballY-CFG.BALL_R<=CFG.LANE_EXIT_Y){
         State.inLane=false;
         State.ballY=CFG.LANE_EXIT_Y+CFG.BALL_R;
-        // Give a gentle leftward nudge so it arcs into the playfield
-        State.ballVX=-1.8;
-        State.ballVY=Math.min(State.ballVY, 0); // don't bounce back down
-        Particles.spawn(State.ballX,State.ballY,0x00ffff,12);
+        State.ballVX=-4;
+        State.ballVY=-2;
+        Particles.spawn(State.ballX,State.ballY,0x00ffff,18);
         showMsg('🚀 BALL IN PLAY!');
       }
-      Render.ball();Render.flippers();Render.scan(State.scanlineTime);
-      Particles.update();Render.floaters();
-      return; // skip all playfield collision while in lane
+      return;
     }
 
     // ── PLAYFIELD MODE ──
@@ -544,6 +547,7 @@ const slGfx =new PIXI.Graphics();gameLayer.addChild(slGfx);
 const tgtGfx=new PIXI.Graphics();gameLayer.addChild(tgtGfx);
 const flpGfx=new PIXI.Graphics();gameLayer.addChild(flpGfx);
 const scanGfx=new PIXI.Graphics();fxLayer.addChild(scanGfx);
+const springGfx=new PIXI.Graphics();gameLayer.addChild(springGfx);
 const laneGfx=new PIXI.Graphics();bgLayer.addChild(laneGfx);
 
 const bmpTxt=BUMPERS.map(b=>{
@@ -644,7 +648,41 @@ const Render={
   floaters(){
     fxLayer.children.forEach(c=>{if(c._life!==undefined){c._life-=.04;c.y+=c._vy||0;c.alpha=c._life;}});
   },
-  init(){this.bg();this.bumpers();this.slings();this.targets();}
+  init(){this.bg();this.bumpers();this.slings();this.targets();},
+  spring(){
+    springGfx.clear();
+    if(State.ballLaunched&&!State.inLane)return;
+    const lx=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
+    const baseY=CFG.H-80;
+    const powerRatio=State.isCharging
+      ?(State.launchPower-CFG.LAUNCH_MIN_POWER)/(CFG.LAUNCH_MAX_POWER-CFG.LAUNCH_MIN_POWER)
+      :0;
+    const springH=60-30*powerRatio;
+    // Plunger head
+    const headCol=State.isCharging
+      ?PIXI.utils.rgb2hex([1,1-powerRatio*0.8,0])
+      :0x446688;
+    springGfx.lineStyle(2,0x888888);
+    springGfx.beginFill(headCol);
+    springGfx.drawRect(lx-12,baseY-springH-5,24,8);
+    springGfx.endFill();
+    // Spring coils
+    const coils=7;
+    const bright=State.isCharging?0xffaa00:0x00ffff;
+    springGfx.lineStyle(2,bright,State.isCharging?0.9:0.5);
+    for(let i=0;i<=coils;i++){
+      const y=baseY-(i/coils)*springH;
+      const xo=(i%2===0)?9:-9;
+      if(i===0)springGfx.moveTo(lx,y);
+      else springGfx.lineTo(lx+xo,y);
+    }
+    springGfx.lineTo(lx,baseY);
+    // Glow ring when fully charged
+    if(powerRatio>0.9){
+      springGfx.lineStyle(4,0xff6600,0.6+Math.sin(State.scanlineTime*30)*0.3);
+      springGfx.drawCircle(lx,State.ballY,CFG.BALL_R+6);
+    }
+  },
 };
 
 // ── MODES ─────────────────────────────────────
@@ -705,22 +743,31 @@ function showMsg(txt){
   clearTimeout(msgT);msgT=setTimeout(()=>el.style.opacity='0',1400);
 }
 function resetBall(){
-  // Park ball at bottom of plunger lane
-  State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
-  State.ballY=CFG.H-60;
+  const laneX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
+  State.ballX=laneX;
+  State.ballY=CFG.H-120; // plunger rest position
   State.ballVX=0;State.ballVY=0;
   State.ballLaunched=false;State.inLane=true;
+  State.launchPower=CFG.LAUNCH_MIN_POWER;State.isCharging=false;
   State.comboCount=0;State.comboMultiplier=1;
   document.getElementById('combo-bar').style.width='0%';
-  updateHUD('READY');Audio.pitch(1);
+  updateHUD('HOLD LAUNCH');Audio.pitch(1);
+}
+function startCharging(){
+  if(State.ballLaunched)return;
+  State.isCharging=true;
+  State.launchPower=CFG.LAUNCH_MIN_POWER;
+  updateHUD('CHARGING...');
 }
 function launchBall(){
-  if(State.ballLaunched)return;
+  if(State.ballLaunched||!State.isCharging)return;
+  State.isCharging=false;
   State.gameActive=true;
-  // Fire straight up the tube — no X velocity until it exits at the top
-  State.ballVY=-(15+Math.random()*2);
+  State.ballVY=-State.launchPower;
   State.ballVX=0;
-  State.ballLaunched=true;State.idleTimer=0;updateHUD('LAUNCHING!');
+  State.ballLaunched=true;State.idleTimer=0;
+  updateHUD('GO!');
+  Particles.spawn(State.ballX,State.ballY+10,0xffaa00,15);
 }
 
 // ── MAIN LOOP ─────────────────────────────────
@@ -729,12 +776,32 @@ Tilt.start();
 
 app.ticker.add(()=>{
   State.scanlineTime+=.01;
+
+  // ── PRE-LAUNCH: charging or idle ──
   if(!State.ballLaunched){
-    State.idleTimer++;if(State.idleTimer>600)launchBall();
-    Render.ball();Render.flippers();Render.scan(State.scanlineTime);return;
+    State.idleTimer++;
+    // Auto-launch after long idle
+    if(State.idleTimer>600){State.isCharging=true;State.launchPower=CFG.LAUNCH_MAX_POWER;launchBall();}
+    // Build charge power while holding
+    if(State.isCharging){
+      State.launchPower=Math.min(State.launchPower+CFG.CHARGE_SPEED,CFG.LAUNCH_MAX_POWER);
+      // Seat ball on plunger head
+      const powerRatio=(State.launchPower-CFG.LAUNCH_MIN_POWER)/(CFG.LAUNCH_MAX_POWER-CFG.LAUNCH_MIN_POWER);
+      const springH=60-30*powerRatio;
+      State.ballY=(CFG.H-80)-springH-CFG.BALL_R-5;
+      State.ballX=CFG.LANE_LEFT+(CFG.LANE_RIGHT-CFG.LANE_LEFT)/2;
+      // Vibrate ball when nearly full
+      if(powerRatio>0.7)State.ballX+=(Math.random()-.5)*2;
+      const pct=powerRatio*100;
+      document.getElementById('combo-bar').style.width=pct+'%';
+    }
+    Render.ball();Render.flippers();Render.spring();Render.scan(State.scanlineTime);
+    Particles.update();
+    return;
   }
+
   Physics.tickBall();Modes.tick();
-  Render.ball();Render.flippers();Render.scan(State.scanlineTime);
+  Render.ball();Render.flippers();Render.spring();Render.scan(State.scanlineTime);
   Particles.update();Render.floaters();
 
   azulEmoji.y=390+Math.sin(State.scanlineTime*2)*3;
@@ -768,7 +835,10 @@ function btn(el,dn,up){
 }
 btn(leftBtn, ()=>setL(true),  ()=>setL(false));
 btn(rightBtn,()=>setR(true),  ()=>setR(false));
-btn(launchEl,()=>{launchBall();launchEl.classList.add('active');},()=>launchEl.classList.remove('active'));
+btn(launchEl,
+  ()=>{startCharging();launchEl.classList.add('active');},
+  ()=>{launchBall();launchEl.classList.remove('active');}
+);
 
 document.getElementById('music-btn').addEventListener('click',()=>Audio.toggle());
 
@@ -788,12 +858,13 @@ document.addEventListener('pointerdown',()=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='z'||e.key==='Z'||e.key==='ArrowLeft')setL(true);
   if(e.key==='/'||e.key==='ArrowRight')setR(true);
-  if(e.key===' '||e.key==='ArrowUp'){e.preventDefault();launchBall();}
+  if((e.key===' '||e.key==='ArrowUp')&&!State.isCharging){e.preventDefault();startCharging();}
   if(e.key==='m'||e.key==='M')Audio.toggle();
 });
 document.addEventListener('keyup',e=>{
   if(e.key==='z'||e.key==='Z'||e.key==='ArrowLeft')setL(false);
   if(e.key==='/'||e.key==='ArrowRight')setR(false);
+  if(e.key===' '||e.key==='ArrowUp')launchBall();
 });
 
 // Block pinch/multi-touch zoom on canvas area
