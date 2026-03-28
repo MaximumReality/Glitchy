@@ -1047,6 +1047,53 @@ if ('serviceWorker' in navigator) {
   }).catch(err => console.warn('SW registration failed:', err));
 }
 </script>
+<script>
+function startGame() {
+  console.log('Game starting!');
+  State.gameActive = true;
+  State.ballLaunched = false;
+  Tilt.start();       // Start tilt detection
+  Audio.init();       // Load music (but muted initially)
+  // If you have an initial ball launch function:
+  // launchBall();    // Uncomment if you want auto-launch
+}
+
+// Service worker registration + loading overlay / progress
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
+    console.log('SW registered!', reg);
+
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'CACHE_PROGRESS') {
+        const { loaded, total } = e.data;
+        const percent = Math.round((loaded / total) * 100);
+        const msgEl = document.getElementById('msg');
+        if (msgEl) {
+          msgEl.textContent = `LOADING ${percent}%`;
+          msgEl.style.opacity = 1;
+
+          if (percent === 100) {
+            setTimeout(() => { msgEl.style.opacity = 0; }, 500);
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.remove();
+            if (typeof startGame === 'function') startGame();
+          }
+        }
+      }
+    });
+
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'activated') {
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+        }
+      };
+    };
+  }).catch(err => console.warn('SW registration failed:', err));
+}
+</script>
 
 </body>
 </html>
