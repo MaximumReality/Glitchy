@@ -1000,17 +1000,34 @@ document.addEventListener('touchend',e=>{
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
 </script>
- <script>
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js')
-    .then(reg => console.log('SW registered!', reg));
 
+
+    <script>
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Glitchy/sw.js')
+    .then(reg => {
+      console.log('SW registered!', reg);
+
+      // Handle updates
+      reg.onupdatefound = () => {
+        const installingWorker = reg.installing;
+        installingWorker.onstatechange = () => {
+          if (installingWorker.state === 'activated') {
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.remove();
+          }
+        };
+      };
+    })
+    .catch(err => console.error('SW registration failed:', err));
+
+  // Listen for cache progress messages
   navigator.serviceWorker.addEventListener('message', e => {
     if (e.data?.type === 'CACHE_PROGRESS') {
       const { loaded, total } = e.data;
       const percent = Math.round((loaded / total) * 100);
       console.log(`Assets loaded: ${percent}%`);
-      // Optionally show a loading bar on your HUD
+
       const msgEl = document.getElementById('msg');
       if (msgEl) {
         msgEl.textContent = `LOADING ${percent}%`;
@@ -1020,19 +1037,6 @@ document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false})
     }
   });
 }
-   if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
-    reg.onupdatefound = () => {
-      const installingWorker = reg.installing;
-      installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'activated') {
-          const overlay = document.getElementById('loading-overlay');
-          if (overlay) overlay.remove();
-        }
-      };
-    };
-  });
-}
-    </script>
+</script>
 </body>
 </html>
