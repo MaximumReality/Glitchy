@@ -977,5 +977,12 @@ document.addEventListener('touchend',e=>{
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
 </script>
+  if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('/Glitchy/sw.js')
+      .then(reg => console.log('SW registered:', reg))
+      .catch(err => console.error('SW failed:', err));
+  });
+}
 </body>
 </html>
