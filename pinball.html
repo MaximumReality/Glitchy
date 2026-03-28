@@ -217,15 +217,25 @@ function startGame() {
 }
 
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
-    console.log('SW registered!', reg);
+  navigator.serviceWorker.register('sw.js').then(reg => {
+    console.log('SW registered!');
+
+    // SAFETY TIMEOUT: If loading gets stuck, start game after 3 seconds
+    const backupTimer = setTimeout(() => {
+      const overlay = document.getElementById('loading-overlay');
+      if (overlay) {
+        console.log('Loading stuck. Bypassing...');
+        overlay.remove();
+        if (typeof startGame === 'function') startGame();
+      }
+    }, 3000);
 
     navigator.serviceWorker.addEventListener('message', e => {
       if (e.data?.type === 'CACHE_PROGRESS') {
         const { loaded, total } = e.data;
         const percent = Math.round((loaded / total) * 100);
 
-        const msgEl = document.getElementById('msg');
+        const msgEl = document.getElementById('msg'); // Your text label
         const barEl = document.getElementById('loading-bar');
 
         if (msgEl && barEl) {
@@ -233,9 +243,9 @@ if ('serviceWorker' in navigator) {
           msgEl.style.opacity = 1;
           barEl.style.width = percent + '%';
 
-          if (percent === 100) {
+          if (percent >= 100) {
+            clearTimeout(backupTimer);
             setTimeout(() => { 
-              msgEl.style.opacity = 0;
               const overlay = document.getElementById('loading-overlay');
               if (overlay) overlay.remove();
               if (typeof startGame === 'function') startGame();
@@ -244,19 +254,11 @@ if ('serviceWorker' in navigator) {
         }
       }
     });
-
-    reg.onupdatefound = () => {
-      const installingWorker = reg.installing;
-      installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'activated') {
-          const overlay = document.getElementById('loading-overlay');
-          if (overlay) overlay.remove();
-        }
-      };
-    };
-
-  }).catch(err => console.warn('SW registration failed:', err));
-}
+  }).catch(err => {
+    console.warn('SW failed:', err);
+    document.getElementById('loading-overlay')?.remove();
+    startGame();
+  });
 </script>
 <div id="canvas-wrap">
   <div id="msg"></div>
