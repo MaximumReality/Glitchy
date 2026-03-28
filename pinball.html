@@ -211,79 +211,61 @@ function startGame() {
   console.log('Game starting!');
   State.gameActive = true;
   State.ballLaunched = false;
-  Tilt.start();
-  Audio.init();
-  // launchBall(); // Optional auto-launch
+  if (typeof Tilt !== 'undefined') Tilt.start();
+  if (typeof Audio !== 'undefined') Audio.init();
 }
+
+// Ensure the overlay disappears regardless of PWA success
+const forceStartTimeout = setTimeout(() => {
+  const overlay = document.getElementById('loading-overlay');
+  if (overlay) {
+    console.log('Safety bypass triggered.');
+    overlay.remove();
+    startGame();
+  }
+}, 3000);
 
 if ('serviceWorker' in navigator) {
   navigator.serviceWorker.register('sw.js').then(reg => {
     console.log('SW registered!');
-
-    // SAFETY TIMEOUT: If loading gets stuck, start game after 3 seconds
-    const backupTimer = setTimeout(() => {
-      const overlay = document.getElementById('loading-overlay');
-      if (overlay) {
-        console.log('Loading stuck. Bypassing...');
-        overlay.remove();
-        if (typeof startGame === 'function') startGame();
-      }
-    }, 3000);
 
     navigator.serviceWorker.addEventListener('message', e => {
       if (e.data?.type === 'CACHE_PROGRESS') {
         const { loaded, total } = e.data;
         const percent = Math.round((loaded / total) * 100);
 
-        const msgEl = document.getElementById('msg'); // Your text label
+        const msgEl = document.querySelector('#loading-overlay #msg');
         const barEl = document.getElementById('loading-bar');
 
-        if (msgEl && barEl) {
-          msgEl.textContent = `LOADING ${percent}%`;
-          msgEl.style.opacity = 1;
-          barEl.style.width = percent + '%';
+        if (msgEl) msgEl.textContent = `LOADING ${percent}%`;
+        if (barEl) barEl.style.width = percent + '%';
 
-          if (percent >= 100) {
-            clearTimeout(backupTimer);
-            setTimeout(() => { 
-              const overlay = document.getElementById('loading-overlay');
-              if (overlay) overlay.remove();
-              if (typeof startGame === 'function') startGame();
-            }, 500);
-          }
+        if (percent >= 100) {
+          clearTimeout(forceStartTimeout);
+          setTimeout(() => { 
+            const overlay = document.getElementById('loading-overlay');
+            if (overlay) overlay.remove();
+            startGame();
+          }, 500);
         }
       }
     });
   }).catch(err => {
     console.warn('SW failed:', err);
+    clearTimeout(forceStartTimeout);
     document.getElementById('loading-overlay')?.remove();
     startGame();
   });
+} else {
+  // No Service Worker support? Just start.
+  clearTimeout(forceStartTimeout);
+  document.getElementById('loading-overlay')?.remove();
+  startGame();
+}
 </script>
-<div id="canvas-wrap">
-  <div id="msg"></div>
-  <div id="azul-flash"></div>
-  <div id="mochkil-flash"></div>
-  <div id="mode-overlay"></div>
-  <div id="tilt-indicator">↔ TILT ACTIVE</div>
-  <button id="music-btn">♪ OFF</button>
-  <div id="game-over-overlay">
-    <h1>GAME OVER</h1>
-    <div id="final-stats">
-      <p>FINAL SCORE: <span id="stat-score" style="color:#fff;">0</span></p>
-      <p>HIGH SCORE: <span id="stat-hi" style="color:#fff;">0</span></p>
-      <p id="new-record-msg">🏆 NEW WORLD RECORD! 🏆</p>
-    </div>
-    <button id="play-again-btn" onclick="resetGameFromOverlay()">PLAY AGAIN</button>
-  </div>
-</div>
 
-<div id="controls">
-  <button class="flipper-btn" id="left-btn"><span>◄ LEFT</span></button>
-  <button class="flipper-btn" id="launch-btn"><span>LAUNCH</span></button>
-  <button class="flipper-btn" id="right-btn"><span>RIGHT ►</span></button>
-</div>
 <script>
+// --- START OF GAME ENGINE ---
 const CFG={
   W:420,H:720,
   WALL_LEFT:22,WALL_RIGHT:398,
