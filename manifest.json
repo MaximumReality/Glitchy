@@ -1,0 +1,21 @@
+{
+  "name": "Maximum Reality Pinball",
+  "short_name": "MR Pinball",
+  "start_url": "/Glitchy/pinball.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://maximumreality.github.io/Glitchy/share-app.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg"
+    },
+    {
+      "src": "https://maximumreality.github.io/Glitchy/share-app.jpeg",
+      "sizes": "192x192",
+      "type": "image/jpeg"
+    }
+  ]
+}
