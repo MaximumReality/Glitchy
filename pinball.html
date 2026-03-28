@@ -109,6 +109,27 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 #new-record-msg{color:#f0f;font-weight:bold;text-shadow:0 0 12px #f0f;display:none;}
 #play-again-btn{background:transparent;border:2px solid #0ff;color:#0ff;padding:12px 28px;font-size:16px;cursor:pointer;font-family:'Courier New',monospace;letter-spacing:3px;box-shadow:0 0 12px #0ff4;touch-action:manipulation;-webkit-tap-highlight-color:transparent;outline:none;}
 #play-again-btn:active{background:#0ff2;}
+
+  #loading-overlay {
+  position:fixed;
+  inset:0;
+  background:#000;
+  color:#0ff;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  font-family:'Courier New', monospace;
+  font-size:20px;
+  letter-spacing:3px;
+  z-index:1000;
+}
+  #canvas-wrap {
+  position:relative;
+  width:100%;
+  flex:1 1 auto;
+  min-height:100vh;
+  overflow:hidden;
+}
 </style>
 </head>
 <body>
@@ -134,7 +155,9 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
   <div id="combo-bar-wrap"><div id="combo-bar"></div></div>
 </div>
 
-
+<div id="loading-overlay">
+  <p>LOADING MAXIMUM REALITY...</p>
+</div>
 <div id="canvas-wrap">
   <div id="msg"></div>
   <div id="azul-flash"></div>
@@ -995,6 +1018,19 @@ document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false})
         if (percent === 100) setTimeout(() => { msgEl.style.opacity = 0; }, 800);
       }
     }
+  });
+}
+   if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'activated') {
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+        }
+      };
+    };
   });
 }
     </script>
