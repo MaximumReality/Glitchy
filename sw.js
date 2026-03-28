@@ -1,72 +1,75 @@
 const CACHE_NAME = 'mr-pinball-v1';
-const ASSETS_TO_CACHE = [
+const FILES_TO_CACHE = [
   '/Glitchy/pinball.html',
   '/Glitchy/manifest.json',
-  'https://maximumreality.github.io/Glitchy/share-app.jpeg',
-  'https://maximumreality.github.io/Glitchy/mr-pb-favicon.jpeg',
-  'https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js',
-  'https://maximumreality.github.io/Glitchy/chaos.mp3',
-  'https://maximumreality.xyz/intro.MP4'
+  '/Glitchy/chaos.mp3',
+  '/Glitchy/intro.MP4',
+  '/Glitchy/mr-pb-favicon.jpeg',
+  '/Glitchy/share-app.jpeg',
+  'https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js'
 ];
 
-// Install SW and pre-cache core assets with progress reporting
+// Install SW and cache files with progress
 self.addEventListener('install', event => {
   console.log('[SW] Installing...');
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(async cache => {
-      let loaded = 0;
-      for (const url of ASSETS_TO_CACHE) {
+    (async () => {
+      const cache = await caches.open(CACHE_NAME);
+      for (let i = 0; i < FILES_TO_CACHE.length; i++) {
         try {
-          await cache.add(url);
-          loaded++;
+          await cache.add(FILES_TO_CACHE[i]);
+          console.log(`[SW] Cached: ${FILES_TO_CACHE[i]} (${i + 1}/${FILES_TO_CACHE.length})`);
           // Send progress to clients
-          self.clients.matchAll().then(clients => {
-            clients.forEach(client => {
-              client.postMessage({ type: 'CACHE_PROGRESS', loaded, total: ASSETS_TO_CACHE.length });
+          const clientsList = await self.clients.matchAll();
+          clientsList.forEach(client => {
+            client.postMessage({
+              type: 'CACHE_PROGRESS',
+              loaded: i + 1,
+              total: FILES_TO_CACHE.length
             });
           });
-        } catch (err) {
-          console.warn('[SW] Failed to cache', url, err);
+        } catch (e) {
+          console.warn('[SW] Cache failed for', FILES_TO_CACHE[i], e);
         }
       }
-      self.skipWaiting();
-    })
+    })()
   );
 });
 
-// Activate SW and remove old caches
+// Activate SW and clean old caches
 self.addEventListener('activate', event => {
   console.log('[SW] Activating...');
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(
-        keys.map(key => {
-          if (key !== CACHE_NAME) {
-            console.log('[SW] Deleting old cache:', key);
-            return caches.delete(key);
-          }
-        })
-      )
-    ).then(() => self.clients.claim())
+    (async () => {
+      const keys = await caches.keys();
+      for (const key of keys) {
+        if (key !== CACHE_NAME) {
+          console.log('[SW] Deleting old cache:', key);
+          await caches.delete(key);
+        }
+      }
+      await self.clients.claim();
+    })()
   );
 });
 
-// Fetch handler with cache-first strategy
+// Fetch handler with cache-first strategy and fallback for images
 self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request).then(cachedResponse => {
       if (cachedResponse) return cachedResponse;
 
       return fetch(event.request).then(networkResponse => {
-        if (!networkResponse || networkResponse.status !== 200 || networkResponse.type === 'opaque') {
-          return networkResponse;
+        // Only cache valid responses
+        if (networkResponse && networkResponse.status === 200 && networkResponse.type !== 'opaque') {
+          caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
         }
-        caches.open(CACHE_NAME).then(cache => cache.put(event.request, networkResponse.clone()));
         return networkResponse;
       }).catch(() => {
-        // Optional fallback
+        // Fallback for images
         if (event.request.destination === 'image') {
-          return caches.match('https://maximumreality.github.io/Glitchy/share-app.jpeg');
+          return caches.match('/Glitchy/share-app.jpeg');
         }
       });
     })
