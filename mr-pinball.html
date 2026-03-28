@@ -6,6 +6,25 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>MAXIMUM REALITY PINBALL</title>
+  <!-- FAVICON (tiny icon) -->
+<link rel="icon" href="https://maximumreality.github.io/Glitchy/mr-pb-favicon.jpeg?v=1">
+<link rel="shortcut icon" href="https://maximumreality.github.io/Glitchy/mr-pb-favicon.jpeg?v=1">
+
+<!-- iPHONE / ADD TO HOME SCREEN -->
+<link rel="apple-touch-icon" href="https://maximumreality.github.io/Glitchy/share-app.jpeg">
+
+
+<!-- SOCIAL SHARE -->
+<meta property="og:title" content="Maximum Reality Pinball">
+<meta property="og:description" content="Glitchy neon chaos pinball. Enter Maximum Reality.">
+<meta property="og:image" content="https://maximumreality.github.io/Glitchy/share-app.jpeg">
+<meta property="og:url" content="https://maximumreality.github.io/Glitchy/pinball.html">
+<meta property="og:type" content="website">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Maximum Reality Pinball">
+<meta name="twitter:description" content="Glitchy neon pinball chaos. Can you survive?">
+<meta name="twitter:image" content="https://maximumreality.github.io/Glitchy/share-app.jpeg">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pixi.js/7.3.2/pixi.min.js"></script>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;-webkit-touch-callout:none;user-select:none;}
@@ -84,6 +103,10 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 </style>
 </head>
 <body>
+  <video id="intro-video" muted loop playsinline crossorigin="anonymous" style="display:none;">
+  <source src="https://maximumreality.xyz/intro.MP4" type="video/mp4">
+</video>
+
 <div id="hud">
   <div class="hud-block">
     <div class="hud-label">SCORE</div>
@@ -134,7 +157,7 @@ const CFG={
   GRAVITY:0.22,
   FRICTION:0.985,
   FLIPPER_Y:610,
-  FLIPPER_LEN:118,
+  FLIPPER_LEN:125,
   BUMPER_COOLDOWN:15,
   COMBO_DECAY_MS:2200,
   AZUL_MODE_DURATION:360,
@@ -321,33 +344,54 @@ const Physics={
   fAngle(f,a){return a?f.upAngle:f.baseAngle;},
   fEnd(f,a){const ang=this.fAngle(f,a);return{x:f.x+Math.cos(ang)*f.len,y:f.y+Math.sin(ang)*f.len};},
 
-  flipperHit(ball,f,active){
-    const fe=this.fEnd(f,active);
-    const d=this.distSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
-    const thresh=CFG.BALL_R+7;
-    if(d>=thresh)return;
-    const cp=this.closestSeg(ball.x,ball.y,f.x,f.y,fe.x,fe.y);
-    let nx=ball.x-cp.x,ny=ball.y-cp.y;
-    const nl=Math.hypot(nx,ny)||1;nx/=nl;ny/=nl;
-    ball.x+=nx*(thresh-d)*1.1;
-    ball.y+=ny*(thresh-d)*1.1;
-    const approach=-(ball.vx*nx+ball.vy*ny);
-    if(approach>0.05){
-      const dot=ball.vx*nx+ball.vy*ny;
-      ball.vx-=2*dot*nx;
-      ball.vy-=2*dot*ny;
-      if(active){
-        ball.vy-=8+Math.abs(ball.vx)*0.45;
-        ball.vx*=1.12;
-        State.shake=Math.max(State.shake,5);
-      }else{
-        ball.vy*=0.80;
+    flipperHit(ball, f, active) {
+    const fe = this.fEnd(f, active);
+    const d = this.distSeg(ball.x, ball.y, f.x, f.y, fe.x, fe.y);
+    const thresh = CFG.BALL_R + 8; 
+
+    // --- TUNNELING PROTECTION (CRASH-PROOF VERSION) ---
+    if (d >= thresh) {
+      // We check if the ball is horizontally between the pivot and the tip
+      // This uses 'f' directly so it doesn't look for variables that aren't there
+      const isLeftFlipper = f.x < CFG.W / 2;
+      const isBetween = isLeftFlipper 
+        ? (ball.x > f.x && ball.x < fe.x) 
+        : (ball.x < f.x && ball.x > fe.x);
+
+      if (isBetween && ball.y > f.y - 10 && ball.y < f.y + 25 && ball.vy > 0) {
+        ball.y = f.y - thresh; 
+        ball.vy *= -0.6;       
       }
-      ball.vx=Math.max(-13,Math.min(13,ball.vx));
-      ball.vy=Math.max(-18,Math.min(12,ball.vy));
-      Particles.spawn(cp.x,cp.y,0x00ffff,7);
+      return;
+    }
+
+    const cp = this.closestSeg(ball.x, ball.y, f.x, f.y, fe.x, fe.y);
+    let nx = ball.x - cp.x, ny = ball.y - cp.y;
+    const nl = Math.hypot(nx, ny) || 1; nx /= nl; ny /= nl;
+
+    ball.x += nx * (thresh - d) * 1.2;
+    ball.y += ny * (thresh - d) * 1.2;
+
+    const approach = -(ball.vx * nx + ball.vy * ny);
+    if (approach > 0.05) {
+      const dot = ball.vx * nx + ball.vy * ny;
+      ball.vx -= 2 * dot * nx;
+      ball.vy -= 2 * dot * ny;
+
+      if (active) {
+        ball.vy -= 9 + Math.abs(ball.vx) * 0.5;
+        ball.vx *= 1.15;
+        State.shake = Math.max(State.shake, 6);
+      } else {
+        ball.vy *= 0.75;
+      }
+
+      ball.vx = Math.max(-14, Math.min(14, ball.vx));
+      ball.vy = Math.max(-20, Math.min(12, ball.vy));
+      Particles.spawn(cp.x, cp.y, 0x00ffff, 7);
     }
   },
+
 
   checkFlipper(f,active){
     const tmp={x:State.ballX,y:State.ballY,vx:State.ballVX,vy:State.ballVY};
@@ -541,6 +585,31 @@ const azulEmoji=new PIXI.Text('😼',{fontSize:26});azulEmoji.anchor.set(.5);azu
 const mochEmoji=new PIXI.Text('🐱',{fontSize:26});mochEmoji.anchor.set(.5);mochEmoji.x=CFG.W-90;mochEmoji.y=390;uiLayer.addChild(mochEmoji);
 const mrTitle=new PIXI.Text('MAXIMUM\nREALITY',{fontSize:13,fill:0x00ffff,fontFamily:'Courier New',fontWeight:'bold',align:'center',letterSpacing:3,dropShadow:true,dropShadowColor:0x00ffff,dropShadowBlur:12,dropShadowDistance:0});
 mrTitle.anchor.set(.5);mrTitle.x=CFG.W/2;mrTitle.y=415;uiLayer.addChild(mrTitle);
+  // --- NEW VIDEO SCREEN LOGIC ---
+const videoElement = document.getElementById('intro-video');
+const videoTexture = PIXI.Texture.from(videoElement);
+const lcdScreen = new PIXI.Sprite(videoTexture);
+
+lcdScreen.anchor.set(0.5);
+lcdScreen.width = 140;  // bottom
+lcdScreen.height = 79;
+lcdScreen.x = CFG.W / 2;
+lcdScreen.y = 510; 
+
+// A subtle neon frame to make it look like a real monitor
+const lcdFrame = new PIXI.Graphics();
+  lcdFrame.clear(); 
+lcdFrame.lineStyle(3, 0x00ffff, 0.4);
+lcdFrame.drawRect(lcdScreen.x - 72, lcdScreen.y - 41, 144, 82);
+
+// Add it to the gameLayer so it's behind the ball
+gameLayer.addChild(lcdFrame, lcdScreen);
+
+// Start the video on the first touch (Safari requirement)
+document.addEventListener('pointerdown', () => {
+    videoElement.play();
+}, { once: true });
+
 
 // ── BALL SPRITE with glow layer ───────────────
 // Glow drawn beneath the image so it halos around ball.png
