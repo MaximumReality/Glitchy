@@ -1004,39 +1004,49 @@ document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false})
 
     <script>
 if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js')
-    .then(reg => {
-      console.log('SW registered!', reg);
+  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
+    console.log('SW registered!', reg);
 
-      // Handle updates
-      reg.onupdatefound = () => {
-        const installingWorker = reg.installing;
-        installingWorker.onstatechange = () => {
-          if (installingWorker.state === 'activated') {
+    // Listen for progress updates
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'CACHE_PROGRESS') {
+        const { loaded, total } = e.data;
+        const percent = Math.round((loaded / total) * 100);
+        const msgEl = document.getElementById('msg');
+        if (msgEl) {
+          msgEl.textContent = `LOADING ${percent}%`;
+          msgEl.style.opacity = 1;
+
+          if (percent === 100) {
+            // Fade out the message
+            setTimeout(() => { 
+              msgEl.style.opacity = 0; 
+            }, 500);
+
+            // Remove overlay and start the game
             const overlay = document.getElementById('loading-overlay');
             if (overlay) overlay.remove();
+
+            // Call a function to start the game
+            if (typeof startGame === 'function') startGame();
           }
-        };
-      };
-    })
-    .catch(err => console.error('SW registration failed:', err));
-
-  // Listen for cache progress messages
-  navigator.serviceWorker.addEventListener('message', e => {
-    if (e.data?.type === 'CACHE_PROGRESS') {
-      const { loaded, total } = e.data;
-      const percent = Math.round((loaded / total) * 100);
-      console.log(`Assets loaded: ${percent}%`);
-
-      const msgEl = document.getElementById('msg');
-      if (msgEl) {
-        msgEl.textContent = `LOADING ${percent}%`;
-        msgEl.style.opacity = 1;
-        if (percent === 100) setTimeout(() => { msgEl.style.opacity = 0; }, 800);
+        }
       }
-    }
-  });
+    });
+
+    // Remove any loading overlay if SW activates after first load
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'activated') {
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+        }
+      };
+    };
+  }).catch(err => console.warn('SW registration failed:', err));
 }
 </script>
+
 </body>
 </html>
