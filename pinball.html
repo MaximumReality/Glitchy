@@ -976,6 +976,26 @@ document.addEventListener('touchend',e=>{
 },{passive:false});
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
+
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Glitchy/sw.js')
+    .then(reg => console.log('SW registered!', reg));
+
+  navigator.serviceWorker.addEventListener('message', e => {
+    if (e.data?.type === 'CACHE_PROGRESS') {
+      const { loaded, total } = e.data;
+      const percent = Math.round((loaded / total) * 100);
+      console.log(`Assets loaded: ${percent}%`);
+      // Optionally show a loading bar on your HUD
+      const msgEl = document.getElementById('msg');
+      if (msgEl) {
+        msgEl.textContent = `LOADING ${percent}%`;
+        msgEl.style.opacity = 1;
+        if (percent === 100) setTimeout(() => { msgEl.style.opacity = 0; }, 800);
+      }
+    }
+  });
+}
 </script>
   if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
