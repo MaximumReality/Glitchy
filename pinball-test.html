@@ -111,17 +111,18 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
 #play-again-btn:active{background:#0ff2;}
 
   #loading-overlay {
-  position:fixed;
-  inset:0;
-  background:#000;
-  color:#0ff;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  font-family:'Courier New', monospace;
-  font-size:20px;
-  letter-spacing:3px;
-  z-index:1000;
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #0ff;
+  display: flex;
+  flex-direction: column; /* added for vertical stacking */
+  justify-content: center;
+  align-items: center;
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  letter-spacing: 3px;
+  z-index: 1000;
 }
   #canvas-wrap {
   position:relative;
@@ -155,9 +156,98 @@ body{display:flex;flex-direction:column;align-items:center;justify-content:flex-
   <div id="combo-bar-wrap"><div id="combo-bar"></div></div>
 </div>
 
+<!-- Loading Overlay -->
 <div id="loading-overlay">
-  <p>LOADING MAXIMUM REALITY...</p>
+  <p id="msg">LOADING 0%</p>
+  <div id="loading-bar-container">
+    <div id="loading-bar"></div>
+  </div>
 </div>
+
+<style>
+#loading-overlay {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  color: #0ff;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  font-family: 'Courier New', monospace;
+  font-size: 20px;
+  letter-spacing: 3px;
+  z-index: 1000;
+}
+#loading-bar-container {
+  width: 80%;
+  height: 10px;
+  background: #111;
+  border: 1px solid #0ff;
+  margin-top: 12px;
+  border-radius: 5px;
+  overflow: hidden;
+}
+#loading-bar {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg,#0ff,#f0f);
+  transition: width 0.1s linear;
+}
+</style>
+
+<script>
+function startGame() {
+  console.log('Game starting!');
+  State.gameActive = true;
+  State.ballLaunched = false;
+  Tilt.start();
+  Audio.init();
+  // launchBall(); // Optional auto-launch
+}
+
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
+    console.log('SW registered!', reg);
+
+    navigator.serviceWorker.addEventListener('message', e => {
+      if (e.data?.type === 'CACHE_PROGRESS') {
+        const { loaded, total } = e.data;
+        const percent = Math.round((loaded / total) * 100);
+
+        const msgEl = document.getElementById('msg');
+        const barEl = document.getElementById('loading-bar');
+
+        if (msgEl && barEl) {
+          msgEl.textContent = `LOADING ${percent}%`;
+          msgEl.style.opacity = 1;
+          barEl.style.width = percent + '%';
+
+          if (percent === 100) {
+            setTimeout(() => { 
+              msgEl.style.opacity = 0;
+              const overlay = document.getElementById('loading-overlay');
+              if (overlay) overlay.remove();
+              if (typeof startGame === 'function') startGame();
+            }, 500);
+          }
+        }
+      }
+    });
+
+    reg.onupdatefound = () => {
+      const installingWorker = reg.installing;
+      installingWorker.onstatechange = () => {
+        if (installingWorker.state === 'activated') {
+          const overlay = document.getElementById('loading-overlay');
+          if (overlay) overlay.remove();
+        }
+      };
+    };
+
+  }).catch(err => console.warn('SW registration failed:', err));
+}
+</script>
 <div id="canvas-wrap">
   <div id="msg"></div>
   <div id="azul-flash"></div>
@@ -1000,100 +1090,5 @@ document.addEventListener('touchend',e=>{
 document.addEventListener('gesturestart',e=>e.preventDefault(),{passive:false});
 document.addEventListener('gesturechange',e=>e.preventDefault(),{passive:false});
 </script>
-
-
-    <script>
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
-    console.log('SW registered!', reg);
-
-    // Listen for progress updates
-    navigator.serviceWorker.addEventListener('message', e => {
-      if (e.data?.type === 'CACHE_PROGRESS') {
-        const { loaded, total } = e.data;
-        const percent = Math.round((loaded / total) * 100);
-        const msgEl = document.getElementById('msg');
-        if (msgEl) {
-          msgEl.textContent = `LOADING ${percent}%`;
-          msgEl.style.opacity = 1;
-
-          if (percent === 100) {
-            // Fade out the message
-            setTimeout(() => { 
-              msgEl.style.opacity = 0; 
-            }, 500);
-
-            // Remove overlay and start the game
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.remove();
-
-            // Call a function to start the game
-            if (typeof startGame === 'function') startGame();
-          }
-        }
-      }
-    });
-
-    // Remove any loading overlay if SW activates after first load
-    reg.onupdatefound = () => {
-      const installingWorker = reg.installing;
-      installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'activated') {
-          const overlay = document.getElementById('loading-overlay');
-          if (overlay) overlay.remove();
-        }
-      };
-    };
-  }).catch(err => console.warn('SW registration failed:', err));
-}
-</script>
-<script>
-function startGame() {
-  console.log('Game starting!');
-  State.gameActive = true;
-  State.ballLaunched = false;
-  Tilt.start();       // Start tilt detection
-  Audio.init();       // Load music (but muted initially)
-  // If you have an initial ball launch function:
-  // launchBall();    // Uncomment if you want auto-launch
-}
-
-// Service worker registration + loading overlay / progress
-if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.register('/Glitchy/sw.js').then(reg => {
-    console.log('SW registered!', reg);
-
-    navigator.serviceWorker.addEventListener('message', e => {
-      if (e.data?.type === 'CACHE_PROGRESS') {
-        const { loaded, total } = e.data;
-        const percent = Math.round((loaded / total) * 100);
-        const msgEl = document.getElementById('msg');
-        if (msgEl) {
-          msgEl.textContent = `LOADING ${percent}%`;
-          msgEl.style.opacity = 1;
-
-          if (percent === 100) {
-            setTimeout(() => { msgEl.style.opacity = 0; }, 500);
-            const overlay = document.getElementById('loading-overlay');
-            if (overlay) overlay.remove();
-            if (typeof startGame === 'function') startGame();
-          }
-        }
-      }
-    });
-
-    reg.onupdatefound = () => {
-      const installingWorker = reg.installing;
-      installingWorker.onstatechange = () => {
-        if (installingWorker.state === 'activated') {
-          const overlay = document.getElementById('loading-overlay');
-          if (overlay) overlay.remove();
-        }
-      };
-    };
-  }).catch(err => console.warn('SW registration failed:', err));
-}
-</script>
-
 </body>
 </html>
