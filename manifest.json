@@ -2,6 +2,7 @@
   "name": "Maximum Reality Pinball",
   "short_name": "MR Pinball",
   "start_url": "/Glitchy/pinball.html",
+  "scope": "/Glitchy/",
   "display": "standalone",
   "background_color": "#000000",
   "theme_color": "#000000",
