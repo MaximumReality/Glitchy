@@ -280,7 +280,12 @@ function updateRain() {
 
 // Sphere skybox
 const skyGeo  = new THREE.SphereGeometry(200, 24, 24);
-const skyMat  = new THREE.MeshBasicMaterial({ map:rainTex, side:THREE.BackSide });
+const skyMat = new THREE.MeshBasicMaterial({ 
+  map: rainTex, 
+  side: THREE.BackSide,
+  fog: false // This ensures the matrix code doesn't get "lost" in the dark fog
+});
+
 const skyMesh = new THREE.Mesh(skyGeo, skyMat);
 scene.add(skyMesh);
 
@@ -631,8 +636,9 @@ function animate() {
   const t  = clock.getElapsedTime();
 
   // ── Matrix rain (every 2 frames) ──
-  rainFrame++;
-  if (rainFrame % 2 === 0) updateRain();
+    updateRain(); 
+  rainTex.needsUpdate = true;
+
 
   // ── Player movement ──
   let moveX = 0, moveZ = 0;
