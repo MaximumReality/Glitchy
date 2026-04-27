@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>MAXIMUM REALITY CAPSULE MACHINE</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Boogaloo&family=Fredoka+One&family=Nunito:wght@400;700;900&display=swap');
+
+  :root {
+    --red: #e63946;
+    --red-dark: #9b1d22;
+    --red-shine: #ff6b6b;
+    --chrome: #c8c8d8;
+    --chrome-dark: #7a7a8a;
+    --chrome-shine: #eeeef8;
+    --yellow: #ffd60a;
+    --yellow-dark: #b89a00;
+    --glass: rgba(180, 220, 255, 0.18);
+    --glass-shine: rgba(255,255,255,0.55);
+    --bg: #1a0a2e;
+    --tray: #888898;
+    --capsule-r: #e63946;
+    --capsule-b: #4cc9f0;
+    --capsule-g: #06d6a0;
+    --capsule-y: #ffd60a;
+    --capsule-p: #b5179e;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--bg);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Nunito', sans-serif;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* starfield bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 60%, #adf 0%, transparent 100%),
+      radial-gradient(1px 1px at 50% 10%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 80%, #adf 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 35%, #fff 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 85%, #adf 0%, transparent 100%),
+      radial-gradient(2px 2px at 90% 10%, #ffd 0%, transparent 100%),
+      radial-gradient(1px 1px at 45% 50%, #fff 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .title {
+    font-family: 'Fredoka One', cursive;
+    font-size: clamp(1rem, 4vw, 1.5rem);
+    color: var(--yellow);
+    text-shadow: 2px 2px 0 var(--yellow-dark), 0 0 20px rgba(255,214,10,0.5);
+    letter-spacing: 3px;
+    margin-bottom: 10px;
+    z-index: 1;
+    text-align: center;
+  }
+
+  /* ===== MACHINE WRAPPER ===== */
+  .machine-wrap {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    user-select: none;
+  }
+
+  /* ===== GLOBE SECTION ===== */
+  .globe-section {
+    position: relative;
+    width: 200px;
+    height: 200px;
+  }
+
+  .globe {
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 35% 30%, var(--glass-shine) 0%, transparent 50%),
+      radial-gradient(circle at 65% 70%, rgba(100,180,255,0.1) 0%, transparent 60%),
+      radial-gradient(circle at 50% 50%, rgba(150,210,255,0.15) 0%, rgba(80,150,220,0.1) 100%);
+    border: 4px solid rgba(200,230,255,0.4);
+    box-shadow:
+      inset -8px -8px 20px rgba(0,0,0,0.3),
+      inset 6px 6px 15px rgba(255,255,255,0.2),
+      0 0 30px rgba(100,180,255,0.2),
+      0 4px 8px rgba(0,0,0,0.4);
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* capsules floating inside globe */
+  .capsule-pile {
+    position: absolute;
+    bottom: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 110px;
+  }
+
+  .mini-cap {
+    position: absolute;
+    width: 26px;
+    height: 16px;
+    border-radius: 8px;
+    animation: floatcap 3s ease-in-out infinite;
+  }
+  .mini-cap::after {
+    content: '';
+    position: absolute;
+    right: 0; top: 0;
+    width: 50%; height: 100%;
+    border-radius: 0 8px 8px 0;
+    background: rgba(0,0,0,0.2);
+  }
+  .mini-cap:nth-child(1)  { background: var(--capsule-r); left: 10px; bottom: 60px; transform: rotate(-20deg); animation-delay: 0s; }
+  .mini-cap:nth-child(2)  { background: var(--capsule-b); left: 45px; bottom: 75px; transform: rotate(10deg); animation-delay: 0.4s; }
+  .mini-cap:nth-child(3)  { background: var(--capsule-g); left: 80px; bottom: 68px; transform: rotate(-5deg); animation-delay: 0.8s; }
+  .mini-cap:nth-child(4)  { background: var(--capsule-y); left: 110px; bottom: 55px; transform: rotate(25deg); animation-delay: 1.2s; }
+  .mini-cap:nth-child(5)  { background: var(--capsule-p); left: 25px; bottom: 35px; transform: rotate(8deg); animation-delay: 0.2s; }
+  .mini-cap:nth-child(6)  { background: var(--capsule-r); left: 60px; bottom: 40px; transform: rotate(-15deg); animation-delay: 0.6s; }
+  .mini-cap:nth-child(7)  { background: var(--capsule-b); left: 95px; bottom: 28px; transform: rotate(18deg); animation-delay: 1s; }
+  .mini-cap:nth-child(8)  { background: var(--capsule-g); left: 35px; bottom: 10px; transform: rotate(-8deg); animation-delay: 1.4s; }
+  .mini-cap:nth-child(9)  { background: var(--capsule-y); left: 70px; bottom: 12px; transform: rotate(5deg); animation-delay: 0.3s; }
+  .mini-cap:nth-child(10) { background: var(--capsule-p); left: 105px; bottom: 8px; transform: rotate(-22deg); animation-delay: 0.9s; }
+
+  @keyframes floatcap {
+    0%, 100% { transform: translateY(0) rotate(var(--r, 0deg)); }
+    50% { transform: translateY(-4px) rotate(var(--r, 0deg)); }
+  }
+
+  /* globe collar */
+  .globe-collar {
+    width: 200px;
+    height: 22px;
+    background: linear-gradient(180deg, var(--chrome-shine) 0%, var(--chrome) 40%, var(--chrome-dark) 100%);
+    border-radius: 4px 4px 0 0;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+    position: relative;
+  }
+  .globe-collar::after {
+    content: '';
+    position: absolute;
+    top: 4px; left: 10%; width: 80%; height: 3px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 2px;
+  }
+
+  /* globe cap top */
+  .globe-cap {
+    width: 60px;
+    height: 30px;
+    background: linear-gradient(180deg, var(--chrome-shine) 0%, var(--chrome) 60%, var(--chrome-dark) 100%);
+    border-radius: 30px 30px 0 0;
+    border: 2px solid rgba(255,255,255,0.3);
+    margin: 0 auto;
+    box-shadow: 0 -2px 6px rgba(0,0,0,0.3);
+  }
+
+  /* ===== BODY ===== */
+  .machine-body {
+    width: 220px;
+    background: linear-gradient(170deg, var(--red-shine) 0%, var(--red) 30%, var(--red-dark) 100%);
+    border-radius: 12px 12px 6px 6px;
+    border: 3px solid rgba(255,255,255,0.2);
+    box-shadow:
+      inset 4px 0 8px rgba(255,255,255,0.15),
+      inset -4px 0 8px rgba(0,0,0,0.3),
+      0 6px 20px rgba(0,0,0,0.5);
+    padding: 14px 16px 10px;
+    position: relative;
+  }
+
+  /* shine strip on body */
+  .machine-body::before {
+    content: '';
+    position: absolute;
+    top: 8px; left: 14px;
+    width: 12px; height: 80%;
+    background: rgba(255,255,255,0.15);
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  /* price tag */
+  .price-tag {
+    background: var(--yellow);
+    color: #222;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    text-align: center;
+    border-radius: 20px;
+    padding: 2px 14px;
+    width: fit-content;
+    margin: 0 auto 10px;
+    box-shadow: 2px 2px 0 var(--yellow-dark);
+    border: 2px solid var(--yellow-dark);
+  }
+
+  /* coin slot */
+  .coin-area {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+    gap: 8px;
+  }
+
+  .coin-slot-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .coin-slot {
+    width: 54px;
+    height: 28px;
+    background: linear-gradient(180deg, #222 0%, #333 100%);
+    border-radius: 6px;
+    border: 2px solid var(--chrome-dark);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.8);
+    position: relative;
+    cursor: pointer;
+    transition: transform 0.1s;
+  }
+  .coin-slot:active { transform: scale(0.95); }
+
+  .coin-slot-hole {
+    width: 30px;
+    height: 5px;
+    background: #111;
+    border-radius: 3px;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.9);
+  }
+
+  .slot-label {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 1px;
+  }
+
+  /* crank */
+  .crank-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .crank-base {
+    width: 32px;
+    height: 32px;
+    background: radial-gradient(circle at 35% 35%, var(--chrome-shine), var(--chrome-dark));
+    border-radius: 50%;
+    border: 2px solid rgba(255,255,255,0.3);
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.5);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .crank-arm {
+    position: absolute;
+    width: 28px;
+    height: 7px;
+    background: linear-gradient(180deg, var(--chrome-shine), var(--chrome-dark));
+    border-radius: 4px;
+    left: 50%;
+    top: 50%;
+    transform-origin: left center;
+    transform: translateY(-50%);
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.4);
+    transition: transform 0.05s;
+  }
+
+  .crank-knob {
+    position: absolute;
+    right: -5px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 11px;
+    height: 11px;
+    background: radial-gradient(circle at 35% 35%, #fff, var(--chrome-dark));
+    border-radius: 50%;
+    box-shadow: 1px 1px 3px rgba(0,0,0,0.5);
+  }
+
+  .crank-label {
+    font-size: 0.6rem;
+    color: rgba(255,255,255,0.6);
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 1px;
+  }
+
+  /* insert coin button */
+  .insert-btn {
+    display: block;
+    width: 100%;
+    padding: 8px;
+    background: linear-gradient(180deg, var(--yellow) 0%, var(--yellow-dark) 100%);
+    color: #222;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    letter-spacing: 1px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 var(--yellow-dark), 0 6px 10px rgba(0,0,0,0.3);
+    transition: all 0.1s;
+    position: relative;
+    top: 0;
+  }
+  .insert-btn:active {
+    top: 4px;
+    box-shadow: 0 0 0 var(--yellow-dark);
+  }
+  .insert-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    top: 0;
+  }
+
+  /* credits */
+  .credits-display {
+    background: #111;
+    border: 2px solid var(--chrome-dark);
+    border-radius: 6px;
+    padding: 4px 8px;
+    text-align: center;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.85rem;
+    color: #0f0;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.6), 0 0 8px rgba(0,255,0,0.2);
+    margin-top: 8px;
+    letter-spacing: 2px;
+  }
+
+  /* ===== NECK ===== */
+  .machine-neck {
+    width: 60px;
+    height: 18px;
+    background: linear-gradient(90deg, var(--chrome-dark) 0%, var(--chrome-shine) 30%, var(--chrome) 60%, var(--chrome-dark) 100%);
+    border-left: 2px solid rgba(255,255,255,0.2);
+    border-right: 2px solid rgba(0,0,0,0.2);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+    margin: 0 auto;
+    position: relative;
+  }
+
+  /* ===== TRAY SECTION ===== */
+  .tray-section {
+    width: 220px;
+    position: relative;
+  }
+
+  .tray-body {
+    width: 100%;
+    height: 50px;
+    background: linear-gradient(180deg, var(--chrome) 0%, var(--chrome-dark) 60%, #555 100%);
+    border-radius: 0 0 16px 16px;
+    border: 3px solid rgba(255,255,255,0.15);
+    border-top: none;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+
+  /* tray door opening */
+  .tray-door {
+    width: 80px;
+    height: 30px;
+    background: linear-gradient(180deg, #777 0%, #555 100%);
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 4px 4px 10px 10px;
+    position: relative;
+    overflow: hidden;
+    transform-origin: top center;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.4);
+  }
+
+  .tray-door.open {
+    animation: openDoor 0.4s ease forwards;
+  }
+
+  @keyframes openDoor {
+    0%   { transform: rotateX(0deg); }
+    100% { transform: rotateX(70deg); }
+  }
+
+  /* tray shine */
+  .tray-body::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 10%; width: 80%; height: 4px;
+    background: rgba(255,255,255,0.25);
+    border-radius: 2px;
+  }
+
+  /* ===== BASE ===== */
+  .machine-base {
+    width: 260px;
+    height: 22px;
+    background: linear-gradient(180deg, var(--chrome-shine) 0%, var(--chrome) 40%, var(--chrome-dark) 100%);
+    border-radius: 6px;
+    border: 2px solid rgba(255,255,255,0.2);
+    box-shadow: 0 6px 16px rgba(0,0,0,0.5);
+    position: relative;
+  }
+  .machine-base::after {
+    content: '';
+    position: absolute;
+    top: 6px; left: 5%; width: 90%; height: 3px;
+    background: rgba(255,255,255,0.3);
+    border-radius: 2px;
+  }
+
+  /* ===== CAPSULE DROP ===== */
+  .capsule-drop-zone {
+    position: fixed;
+    pointer-events: none;
+    z-index: 100;
+    top: 0; left: 0; width: 100%; height: 100%;
+  }
+
+  .drop-capsule {
+    position: absolute;
+    width: 44px;
+    height: 28px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+    opacity: 0;
+  }
+
+  .drop-capsule .cap-top {
+    position: absolute;
+    left: 0; top: 0;
+    width: 52%; height: 100%;
+    border-radius: 14px 0 0 14px;
+  }
+  .drop-capsule .cap-bot {
+    position: absolute;
+    right: 0; top: 0;
+    width: 52%; height: 100%;
+    border-radius: 0 14px 14px 0;
+  }
+  .drop-capsule .cap-shine {
+    position: absolute;
+    left: 8px; top: 4px;
+    width: 14px; height: 7px;
+    background: rgba(255,255,255,0.5);
+    border-radius: 4px;
+    transform: rotate(-15deg);
+  }
+
+  .drop-capsule.animate {
+    animation: capsuleDrop 1.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards;
+  }
+
+  @keyframes capsuleDrop {
+    0%   { opacity: 1; transform: translateY(0) rotate(0deg); }
+    40%  { opacity: 1; transform: translateY(var(--drop-dist)) rotate(180deg); }
+    55%  { opacity: 1; transform: translateY(calc(var(--drop-dist) - 18px)) rotate(200deg); }
+    70%  { opacity: 1; transform: translateY(var(--drop-dist)) rotate(220deg); }
+    82%  { opacity: 1; transform: translateY(calc(var(--drop-dist) - 8px)) rotate(235deg); }
+    92%  { opacity: 1; transform: translateY(var(--drop-dist)) rotate(245deg); }
+    100% { opacity: 0; transform: translateY(var(--drop-dist)) rotate(250deg); }
+  }
+
+  /* ===== PRIZE REVEAL ===== */
+  .prize-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(10, 4, 20, 0.85);
+    z-index: 200;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s;
+  }
+
+  .prize-overlay.show {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .prize-card {
+    background: linear-gradient(135deg, #1a0a2e 0%, #2d1055 100%);
+    border: 3px solid var(--yellow);
+    border-radius: 24px;
+    padding: 30px 24px 24px;
+    text-align: center;
+    max-width: 300px;
+    width: 90%;
+    box-shadow: 0 0 60px rgba(255,214,10,0.4), 0 0 120px rgba(255,214,10,0.15);
+    position: relative;
+    transform: scale(0.5) rotate(-8deg);
+    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .prize-overlay.show .prize-card {
+    transform: scale(1) rotate(0deg);
+  }
+
+  .prize-burst {
+    position: absolute;
+    inset: -20px;
+    background: conic-gradient(
+      from 0deg,
+      transparent 0deg, rgba(255,214,10,0.15) 10deg, transparent 20deg,
+      transparent 30deg, rgba(255,214,10,0.1) 40deg, transparent 50deg,
+      transparent 60deg, rgba(255,214,10,0.15) 70deg, transparent 80deg,
+      transparent 90deg, rgba(255,214,10,0.1) 100deg, transparent 110deg,
+      transparent 120deg, rgba(255,214,10,0.15) 130deg, transparent 140deg,
+      transparent 150deg, rgba(255,214,10,0.1) 160deg, transparent 170deg,
+      transparent 180deg, rgba(255,214,10,0.15) 190deg, transparent 200deg,
+      transparent 210deg, rgba(255,214,10,0.1) 220deg, transparent 230deg,
+      transparent 240deg, rgba(255,214,10,0.15) 250deg, transparent 260deg,
+      transparent 270deg, rgba(255,214,10,0.1) 280deg, transparent 290deg,
+      transparent 300deg, rgba(255,214,10,0.15) 310deg, transparent 320deg,
+      transparent 330deg, rgba(255,214,10,0.1) 340deg, transparent 360deg
+    );
+    border-radius: 50%;
+    z-index: -1;
+    animation: spinburst 8s linear infinite;
+    pointer-events: none;
+  }
+
+  @keyframes spinburst {
+    to { transform: rotate(360deg); }
+  }
+
+  .rarity-badge {
+    display: inline-block;
+    font-family: 'Fredoka One', cursive;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    padding: 3px 12px;
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+  .rarity-common   { background: #4a6; color: #fff; }
+  .rarity-rare     { background: #46f; color: #fff; }
+  .rarity-epic     { background: #93f; color: #fff; }
+  .rarity-legendary { background: linear-gradient(90deg, #ff6b00, #ffd60a); color: #111; }
+
+  .prize-img-wrap {
+    width: 160px;
+    height: 160px;
+    margin: 0 auto 14px;
+    border-radius: 16px;
+    background: rgba(255,255,255,0.05);
+    border: 2px solid rgba(255,214,10,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .prize-img-wrap img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    animation: prizePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  }
+
+  @keyframes prizePop {
+    0% { transform: scale(0) rotate(-20deg); opacity: 0; }
+    100% { transform: scale(1) rotate(0deg); opacity: 1; }
+  }
+
+  /* placeholder when no img */
+  .prize-emoji {
+    font-size: 80px;
+    animation: prizePop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.2s both;
+  }
+
+  .prize-name {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: #fff;
+    margin-bottom: 4px;
+    text-shadow: 0 0 10px rgba(255,214,10,0.5);
+  }
+
+  .prize-desc {
+    font-size: 0.85rem;
+    color: rgba(255,255,255,0.6);
+    margin-bottom: 18px;
+  }
+
+  .prize-close {
+    background: var(--yellow);
+    color: #222;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1rem;
+    border: none;
+    border-radius: 20px;
+    padding: 8px 28px;
+    cursor: pointer;
+    box-shadow: 0 3px 0 var(--yellow-dark);
+    transition: all 0.1s;
+    position: relative;
+    top: 0;
+  }
+  .prize-close:active { top: 3px; box-shadow: 0 0 0 var(--yellow-dark); }
+
+  /* coin animation */
+  .coin-anim {
+    position: fixed;
+    width: 22px;
+    height: 22px;
+    background: radial-gradient(circle at 35% 35%, #ffe066, var(--yellow-dark));
+    border-radius: 50%;
+    border: 2px solid var(--yellow-dark);
+    box-shadow: 1px 1px 4px rgba(0,0,0,0.4);
+    pointer-events: none;
+    z-index: 150;
+    opacity: 0;
+  }
+
+  .coin-anim.go {
+    animation: coinFly 0.5s ease-in forwards;
+  }
+
+  @keyframes coinFly {
+    0%   { opacity: 1; transform: translateY(0) scale(1); }
+    60%  { opacity: 1; transform: translateY(var(--coin-dist)) scale(0.8); }
+    100% { opacity: 0; transform: translateY(var(--coin-dist)) scale(0.3); }
+  }
+
+  /* crank turning */
+  .crank-arm.turning {
+    animation: crankTurn 0.6s ease-in-out;
+  }
+
+  @keyframes crankTurn {
+    0%   { transform: translateY(-50%) rotate(0deg); }
+    25%  { transform: translateY(-50%) rotate(90deg); }
+    50%  { transform: translateY(-50%) rotate(180deg); }
+    75%  { transform: translateY(-50%) rotate(270deg); }
+    100% { transform: translateY(-50%) rotate(360deg); }
+  }
+
+  /* counter */
+  .collection-bar {
+    margin-top: 12px;
+    z-index: 1;
+    text-align: center;
+    color: rgba(255,255,255,0.4);
+    font-size: 0.75rem;
+    font-family: 'Fredoka One', cursive;
+    letter-spacing: 2px;
+  }
+
+  .sparkle {
+    position: fixed;
+    pointer-events: none;
+    z-index: 180;
+    font-size: 18px;
+    animation: sparkleFly 0.8s ease-out forwards;
+  }
+
+  @keyframes sparkleFly {
+    0%   { opacity: 1; transform: translate(0,0) scale(1); }
+    100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="title">✦ MAXIMUM REALITY CAPSULE MACHINE ✦</div>
+
+<div class="machine-wrap" id="machine">
+
+  <!-- Globe top cap -->
+  <div class="globe-cap"></div>
+
+  <!-- Globe section -->
+  <div class="globe-section">
+    <div class="globe">
+      <div class="capsule-pile">
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+        <div class="mini-cap"></div>
+      </div>
+    </div>
+    <div class="globe-collar"></div>
+  </div>
+
+  <!-- Neck -->
+  <div class="machine-neck"></div>
+
+  <!-- Body -->
+  <div class="machine-body">
+    <div class="price-tag">25¢</div>
+    <div class="coin-area">
+      <div class="coin-slot-wrap">
+        <div class="coin-slot" id="coinSlot" title="Insert coin here">
+          <div class="coin-slot-hole"></div>
+        </div>
+        <div class="slot-label">INSERT COIN</div>
+      </div>
+      <div class="crank-wrap">
+        <div class="crank-base">
+          <div class="crank-arm" id="crankArm">
+            <div class="crank-knob"></div>
+          </div>
+        </div>
+        <div class="crank-label">TURN</div>
+      </div>
+    </div>
+    <button class="insert-btn" id="insertBtn">🪙 INSERT COIN & TURN</button>
+    <div class="credits-display" id="creditsDisplay">CREDITS: 0</div>
+  </div>
+
+  <!-- Tray -->
+  <div class="tray-section">
+    <div class="tray-body">
+      <div class="tray-door" id="trayDoor"></div>
+    </div>
+  </div>
+
+  <!-- Base -->
+  <div class="machine-base"></div>
+
+</div>
+
+<div class="collection-bar" id="collectionBar">CAPSULES COLLECTED: 0</div>
+
+<!-- Capsule drop zone -->
+<div class="capsule-drop-zone" id="dropZone"></div>
+
+<!-- Prize overlay -->
+<div class="prize-overlay" id="prizeOverlay">
+  <div class="prize-card" id="prizeCard">
+    <div class="prize-burst"></div>
+    <div class="rarity-badge" id="rarityBadge">COMMON</div>
+    <div class="prize-img-wrap" id="prizeImgWrap"></div>
+    <div class="prize-name" id="prizeName">???</div>
+    <div class="prize-desc" id="prizeDesc"></div>
+    <button class="prize-close" id="prizeClose">KEEP IT! ✨</button>
+  </div>
+</div>
+
+<!-- Flying coin -->
+<div class="coin-anim" id="coinAnim"></div>
+
+<script>
+// ============================================================
+//  PRIZE TABLE — swap in your real image URLs when ready!
+//  Each prize: { name, desc, rarity, img, emoji }
+//  rarity: 'common' | 'rare' | 'epic' | 'legendary'
+//  img: URL string (leave empty/null to use emoji fallback)
+// ============================================================
+const PRIZES = [
+  {
+    name: "AZUL",
+    desc: "Quantum physicist. Hacker. Hairless legend.",
+    rarity: "legendary",
+    img: null,
+    emoji: "🐱"
+  },
+  {
+    name: "MOCHKIL",
+    desc: "Rescued tuxedo cat. Gen Z chef. Chaos energy.",
+    rarity: "epic",
+    img: null,
+    emoji: "🐈"
+  },
+  {
+    name: "BZIZ",
+    desc: "Large. Grumpy. Means 'small' in Darija. Ironic.",
+    rarity: "rare",
+    img: null,
+    emoji: "😾"
+  },
+  {
+    name: "MISHMISH",
+    desc: "The mouse. Apricot. Bziz's eternal nemesis.",
+    rarity: "rare",
+    img: null,
+    emoji: "🐭"
+  },
+  {
+    name: "V0ID-WALKER",
+    desc: "Glitch entity. Speaks in static.",
+    rarity: "epic",
+    img: null,
+    emoji: "👾"
+  },
+  {
+    name: "SRIRACHA-BOT 9000",
+    desc: "Robotic. Spicy. Pyramid dweller.",
+    rarity: "rare",
+    img: null,
+    emoji: "🤖"
+  },
+  {
+    name: "SENTINEL-9",
+    desc: "AI guardian. Humanity leak: 3%.",
+    rarity: "common",
+    img: null,
+    emoji: "🛸"
+  },
+  {
+    name: "MYSTERY CAPSULE",
+    desc: "What's inside? Nobody knows.",
+    rarity: "common",
+    img: null,
+    emoji: "🫧"
+  },
+  {
+    name: "MYSTERY CAPSULE",
+    desc: "A glitch in the system.",
+    rarity: "common",
+    img: null,
+    emoji: "⚡"
+  },
+];
+
+// Weighted rarity pool
+function buildPool() {
+  const weights = { common: 8, rare: 4, epic: 2, legendary: 1 };
+  const pool = [];
+  PRIZES.forEach((p, i) => {
+    const w = weights[p.rarity] || 1;
+    for (let j = 0; j < w; j++) pool.push(i);
+  });
+  return pool;
+}
+const POOL = buildPool();
+
+const COLORS = ['#e63946','#4cc9f0','#06d6a0','#ffd60a','#b5179e'];
+function randColor() { return COLORS[Math.floor(Math.random() * COLORS.length)]; }
+
+let credits = 0;
+let collected = 0;
+let busy = false;
+
+const insertBtn   = document.getElementById('insertBtn');
+const creditsDisp = document.getElementById('creditsDisplay');
+const collBar     = document.getElementById('collectionBar');
+const crankArm    = document.getElementById('crankArm');
+const trayDoor    = document.getElementById('trayDoor');
+const dropZone    = document.getElementById('dropZone');
+const coinAnim    = document.getElementById('coinAnim');
+const prizeOverlay= document.getElementById('prizeOverlay');
+const rarityBadge = document.getElementById('rarityBadge');
+const prizeImgWrap= document.getElementById('prizeImgWrap');
+const prizeName   = document.getElementById('prizeName');
+const prizeDesc   = document.getElementById('prizeDesc');
+const prizeClose  = document.getElementById('prizeClose');
+
+function updateCredits() {
+  creditsDisp.textContent = 'CREDITS: ' + credits;
+}
+
+function pickPrize() {
+  const idx = POOL[Math.floor(Math.random() * POOL.length)];
+  return PRIZES[idx];
+}
+
+function spawnSparkles(x, y) {
+  const emojis = ['✨','⭐','💫','🌟','✦'];
+  for (let i = 0; i < 7; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    s.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    const angle = (Math.random() * 360) * Math.PI / 180;
+    const dist = 50 + Math.random() * 80;
+    s.style.left = (x - 10) + 'px';
+    s.style.top  = (y - 10) + 'px';
+    s.style.setProperty('--sx', Math.round(Math.cos(angle) * dist) + 'px');
+    s.style.setProperty('--sy', Math.round(Math.sin(angle) * dist) + 'px');
+    s.style.animationDelay = (Math.random() * 0.3) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1100);
+  }
+}
+
+function flyCoincoin() {
+  const slotEl = document.getElementById('coinSlot');
+  const rect = slotEl.getBoundingClientRect();
+  const cx = rect.left + rect.width / 2 - 11;
+  const cy = rect.top;
+  coinAnim.style.left = cx + 'px';
+  coinAnim.style.top  = cy + 'px';
+  coinAnim.style.setProperty('--coin-dist', '18px');
+  coinAnim.classList.remove('go');
+  void coinAnim.offsetWidth;
+  coinAnim.classList.add('go');
+}
+
+async function doGumball() {
+  if (busy) return;
+  busy = true;
+  insertBtn.disabled = true;
+
+  // 1. Fly coin
+  flyCoincoin();
+  credits++;
+  updateCredits();
+  await sleep(400);
+
+  // 2. Turn crank
+  crankArm.classList.remove('turning');
+  void crankArm.offsetWidth;
+  crankArm.classList.add('turning');
+  await sleep(650);
+
+  // 3. Drop capsule from neck area
+  const machine = document.getElementById('machine');
+  const machRect = machine.getBoundingClientRect();
+  const neckX = machRect.left + machRect.width / 2 - 22;
+  const neckY = machRect.top + 235; // approx below globe collar
+
+  const trayRect = document.querySelector('.tray-body').getBoundingClientRect();
+  const trayY = trayRect.top + 10;
+  const dropDist = trayY - neckY;
+
+  const cap = document.createElement('div');
+  cap.className = 'drop-capsule';
+  const c1 = randColor(), c2 = randColor();
+  cap.innerHTML = `<div class="cap-top" style="background:${c1}"></div><div class="cap-bot" style="background:${c2}"></div><div class="cap-shine"></div>`;
+  cap.style.left = neckX + 'px';
+  cap.style.top  = neckY + 'px';
+  cap.style.setProperty('--drop-dist', dropDist + 'px');
+  dropZone.appendChild(cap);
+  void cap.offsetWidth;
+  cap.classList.add('animate');
+
+  // 4. Open tray door mid-fall
+  await sleep(600);
+  trayDoor.classList.remove('open');
+  void trayDoor.offsetWidth;
+  trayDoor.classList.add('open');
+
+  // sparkles at tray
+  spawnSparkles(trayRect.left + trayRect.width / 2, trayRect.top + 15);
+
+  await sleep(700);
+  cap.remove();
+
+  // 5. Pick prize
+  const prize = pickPrize();
+  collected++;
+  collBar.textContent = 'CAPSULES COLLECTED: ' + collected;
+
+  // 6. Show prize
+  rarityBadge.className = 'rarity-badge rarity-' + prize.rarity;
+  rarityBadge.textContent = prize.rarity.toUpperCase();
+  prizeName.textContent = prize.name;
+  prizeDesc.textContent = prize.desc;
+  prizeImgWrap.innerHTML = '';
+  if (prize.img) {
+    const img = document.createElement('img');
+    img.src = prize.img;
+    img.alt = prize.name;
+    prizeImgWrap.appendChild(img);
+  } else {
+    const em = document.createElement('div');
+    em.className = 'prize-emoji';
+    em.textContent = prize.emoji;
+    prizeImgWrap.appendChild(em);
+  }
+
+  await sleep(200);
+  prizeOverlay.classList.add('show');
+}
+
+prizeClose.addEventListener('click', () => {
+  prizeOverlay.classList.remove('show');
+  trayDoor.classList.remove('open');
+  busy = false;
+  insertBtn.disabled = false;
+});
+
+insertBtn.addEventListener('click', doGumball);
+
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+updateCredits();
+</script>
+</body>
+</html>
