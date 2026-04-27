@@ -216,6 +216,7 @@
 </style>
 </head>
 <body>
+<audio id="birthdaySong" src="terminal-cake.mp3" preload="auto"></audio>
 
 <canvas id="c"></canvas>
 <div class="cursor" id="cursor"></div>
@@ -244,6 +245,8 @@ const canvas = document.getElementById('c');
 const ctx = canvas.getContext('2d');
 const cursor = document.getElementById('cursor');
 const wishDisplay = document.getElementById('wishDisplay');
+const song = document.getElementById('birthdaySong');
+const candle = document.querySelector('.candle-area');
 
 let W, H, stars = [], mouse = { x: -999, y: -999 };
 
@@ -265,6 +268,7 @@ const wishes = [
 
 let wishIndex = 0;
 let wishTimeout = null;
+let musicStarted = false;
 
 function resize() {
   W = canvas.width = window.innerWidth;
@@ -285,15 +289,12 @@ function resize() {
 
 function drawStars(t) {
   ctx.clearRect(0, 0, W, H);
-
-  // soft deep bg gradient
   const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.7);
   bg.addColorStop(0, '#0a1520');
   bg.addColorStop(1, '#050c12');
   ctx.fillStyle = bg;
   ctx.fillRect(0, 0, W, H);
 
-  // mouse glow
   if (mouse.x > 0) {
     const mg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
     mg.addColorStop(0, 'rgba(201,168,76,0.08)');
@@ -306,25 +307,13 @@ function drawStars(t) {
     const alpha = (Math.sin(t * s.speed * 100 + s.phase) + 1) / 2 * 0.7 + 0.1;
     ctx.beginPath();
     ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
-    ctx.fillStyle = s.gold
-      ? `rgba(240,208,128,${alpha})`
-      : `rgba(200,220,230,${alpha * 0.6})`;
+    ctx.fillStyle = s.gold ? `rgba(240,208,128,${alpha})` : `rgba(200,220,230,${alpha * 0.6})`;
     ctx.fill();
   });
-
-  // subtle teal aurora at bottom
-  const aurora = ctx.createLinearGradient(0, H * 0.6, 0, H);
-  aurora.addColorStop(0, 'transparent');
-  aurora.addColorStop(0.5, 'rgba(45,212,191,0.03)');
-  aurora.addColorStop(1, 'rgba(45,212,191,0.07)');
-  ctx.fillStyle = aurora;
-  ctx.fillRect(0, 0, W, H);
 }
 
-let animT = 0;
 function loop(ts) {
-  animT = ts / 1000;
-  drawStars(animT);
+  drawStars(ts / 1000);
   requestAnimationFrame(loop);
 }
 requestAnimationFrame(loop);
@@ -339,11 +328,6 @@ document.addEventListener('mousemove', e => {
   cursor.style.top = e.clientY + 'px';
 });
 
-document.addEventListener('touchmove', e => {
-  mouse.x = e.touches[0].clientX;
-  mouse.y = e.touches[0].clientY;
-}, { passive: true });
-
 function spawnSparks(x, y) {
   for (let i = 0; i < 12; i++) {
     const s = document.createElement('div');
@@ -355,13 +339,12 @@ function spawnSparks(x, y) {
     s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
     s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
     s.style.background = Math.random() < 0.5 ? '#f0d080' : '#2dd4bf';
-    s.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
     document.body.appendChild(s);
     setTimeout(() => s.remove(), 1600);
   }
 }
 
-function showWish(x, y) {
+function showWish() {
   const w = wishes[wishIndex % wishes.length];
   wishIndex++;
   wishDisplay.textContent = '"' + w + '"';
@@ -370,16 +353,38 @@ function showWish(x, y) {
   wishTimeout = setTimeout(() => wishDisplay.classList.remove('show'), 2800);
 }
 
+// Start Music Function
+function startMusic() {
+  if (!musicStarted) {
+    song.play().catch(e => console.log("Audio play blocked or file not found"));
+    musicStarted = true;
+  }
+}
+
+// Listen specifically for the candle tap
+candle.addEventListener('click', (e) => {
+  e.stopPropagation(); // Prevents the general document click from firing twice
+  startMusic();
+  spawnSparks(e.clientX, e.clientY);
+  showWish();
+});
+
+// General tap for wishes
 document.addEventListener('click', e => {
   spawnSparks(e.clientX, e.clientY);
-  showWish(e.clientX, e.clientY);
+  showWish();
 });
 
 document.addEventListener('touchstart', e => {
   const t = e.touches[0];
+  // If they touch the candle specifically
+  if(e.target.closest('.candle-area')) {
+     startMusic();
+  }
   spawnSparks(t.clientX, t.clientY);
-  showWish(t.clientX, t.clientY);
+  showWish();
 }, { passive: true });
 </script>
+
 </body>
 </html>
