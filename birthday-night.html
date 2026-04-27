@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Birthday Night</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Space+Mono:wght@400&display=swap');
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a84c;
+    --gold-light: #f0d080;
+    --teal: #2dd4bf;
+    --deep: #050c12;
+    --soft: #1a2a35;
+  }
+
+  body {
+    background: var(--deep);
+    color: #e8dcc8;
+    font-family: 'Cormorant Garamond', serif;
+    height: 100dvh;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: none;
+  }
+
+  canvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .cursor {
+    position: fixed;
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    pointer-events: none;
+    z-index: 999;
+    transform: translate(-50%, -50%);
+    mix-blend-mode: screen;
+    transition: transform 0.1s ease;
+  }
+
+  .scene {
+    position: relative;
+    z-index: 10;
+    text-align: center;
+    padding: 2rem;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.8rem;
+  }
+
+  .title {
+    font-size: clamp(2.2rem, 8vw, 3.5rem);
+    font-weight: 300;
+    font-style: italic;
+    letter-spacing: 0.04em;
+    color: var(--gold-light);
+    text-shadow: 0 0 40px rgba(201,168,76,0.4);
+    animation: fadeUp 2s ease forwards;
+    opacity: 0;
+  }
+
+  .subtitle {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    color: var(--teal);
+    opacity: 0;
+    animation: fadeUp 2s ease 0.5s forwards;
+    text-transform: uppercase;
+  }
+
+  .candle-area {
+    position: relative;
+    width: 60px;
+    opacity: 0;
+    animation: fadeUp 2s ease 1s forwards;
+  }
+
+  .candle-body {
+    width: 18px;
+    height: 55px;
+    background: linear-gradient(135deg, #c9a84c, #8b6914);
+    border-radius: 3px 3px 2px 2px;
+    margin: 0 auto;
+    position: relative;
+  }
+
+  .wick {
+    width: 2px;
+    height: 10px;
+    background: #333;
+    position: absolute;
+    top: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 1px;
+  }
+
+  .flame {
+    position: absolute;
+    top: -34px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 14px;
+    height: 24px;
+    background: radial-gradient(ellipse at 50% 80%, #fff5c0, #ffb347, #ff6b00, transparent);
+    border-radius: 50% 50% 40% 40%;
+    animation: flicker 1.8s ease-in-out infinite alternate;
+    filter: blur(0.5px);
+  }
+
+  .flame::after {
+    content: '';
+    position: absolute;
+    top: 4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 6px;
+    height: 12px;
+    background: radial-gradient(ellipse, rgba(255,255,255,0.9), transparent);
+    border-radius: 50%;
+  }
+
+  .message {
+    font-size: clamp(1rem, 4vw, 1.3rem);
+    font-weight: 300;
+    font-style: italic;
+    line-height: 1.8;
+    max-width: 340px;
+    color: rgba(232, 220, 200, 0.85);
+    opacity: 0;
+    animation: fadeUp 2s ease 1.5s forwards;
+  }
+
+  .message span {
+    color: var(--gold);
+  }
+
+  .tap-hint {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.55rem;
+    letter-spacing: 0.18em;
+    color: rgba(45, 212, 191, 0.5);
+    text-transform: uppercase;
+    opacity: 0;
+    animation: fadeUp 2s ease 2.5s forwards, pulse 3s ease 3s infinite;
+  }
+
+  .wish-display {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(1.1rem, 5vw, 1.6rem);
+    font-style: italic;
+    color: var(--gold-light);
+    text-shadow: 0 0 30px rgba(240,208,128,0.6);
+    text-align: center;
+    max-width: 80vw;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease;
+    padding: 1rem;
+    background: radial-gradient(ellipse at center, rgba(5,12,18,0.9), transparent);
+  }
+
+  .wish-display.show {
+    opacity: 1;
+  }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes flicker {
+    0% { transform: translateX(-50%) scaleX(1) scaleY(1) rotate(-1deg); }
+    30% { transform: translateX(-50%) scaleX(0.92) scaleY(1.05) rotate(1deg); }
+    60% { transform: translateX(-50%) scaleX(1.05) scaleY(0.97) rotate(-0.5deg); }
+    100% { transform: translateX(-50%) scaleX(0.95) scaleY(1.08) rotate(1.5deg); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 0.5; }
+    50% { opacity: 0.9; }
+  }
+
+  @keyframes sparkFloat {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(0); opacity: 0; }
+  }
+
+  .spark {
+    position: fixed;
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold-light);
+    pointer-events: none;
+    z-index: 15;
+    animation: sparkFloat 1.2s ease-out forwards;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="c"></canvas>
+<div class="cursor" id="cursor"></div>
+
+<div class="scene">
+  <div class="subtitle">april 27 &nbsp;·&nbsp; terminal night</div>
+  <div class="title">Happy Birthday,<br>Lori</div>
+  <div class="candle-area">
+    <div class="flame"></div>
+    <div class="candle-body">
+      <div class="wick"></div>
+    </div>
+  </div>
+  <div class="message">
+    You dressed the night in gold.<br>
+    You came through.<br>
+    <span>That's a win you can wear.</span>
+  </div>
+  <div class="tap-hint">tap anywhere to make a wish</div>
+</div>
+
+<div class="wish-display" id="wishDisplay"></div>
+
+<script>
+const canvas = document.getElementById('c');
+const ctx = canvas.getContext('2d');
+const cursor = document.getElementById('cursor');
+const wishDisplay = document.getElementById('wishDisplay');
+
+let W, H, stars = [], mouse = { x: -999, y: -999 };
+
+const wishes = [
+  "one more year, one more glow",
+  "you are enough in this empty scene",
+  "the terminal remembers your light",
+  "lonely isn't all you are",
+  "still you dress the night in gold",
+  "cutting cake in the terminal",
+  "i can be my own mad fan",
+  "one small flame, one steady hand",
+  "send a spark back up to me",
+  "in the dark, I still believe",
+  "you came through",
+  "happy me",
+  "I'm home to my own glow",
+];
+
+let wishIndex = 0;
+let wishTimeout = null;
+
+function resize() {
+  W = canvas.width = window.innerWidth;
+  H = canvas.height = window.innerHeight;
+  stars = [];
+  for (let i = 0; i < 160; i++) {
+    stars.push({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.4 + 0.3,
+      a: Math.random(),
+      speed: Math.random() * 0.004 + 0.001,
+      phase: Math.random() * Math.PI * 2,
+      gold: Math.random() < 0.25,
+    });
+  }
+}
+
+function drawStars(t) {
+  ctx.clearRect(0, 0, W, H);
+
+  // soft deep bg gradient
+  const bg = ctx.createRadialGradient(W/2, H/2, 0, W/2, H/2, Math.max(W,H)*0.7);
+  bg.addColorStop(0, '#0a1520');
+  bg.addColorStop(1, '#050c12');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // mouse glow
+  if (mouse.x > 0) {
+    const mg = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, 120);
+    mg.addColorStop(0, 'rgba(201,168,76,0.08)');
+    mg.addColorStop(1, 'transparent');
+    ctx.fillStyle = mg;
+    ctx.fillRect(0, 0, W, H);
+  }
+
+  stars.forEach(s => {
+    const alpha = (Math.sin(t * s.speed * 100 + s.phase) + 1) / 2 * 0.7 + 0.1;
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2);
+    ctx.fillStyle = s.gold
+      ? `rgba(240,208,128,${alpha})`
+      : `rgba(200,220,230,${alpha * 0.6})`;
+    ctx.fill();
+  });
+
+  // subtle teal aurora at bottom
+  const aurora = ctx.createLinearGradient(0, H * 0.6, 0, H);
+  aurora.addColorStop(0, 'transparent');
+  aurora.addColorStop(0.5, 'rgba(45,212,191,0.03)');
+  aurora.addColorStop(1, 'rgba(45,212,191,0.07)');
+  ctx.fillStyle = aurora;
+  ctx.fillRect(0, 0, W, H);
+}
+
+let animT = 0;
+function loop(ts) {
+  animT = ts / 1000;
+  drawStars(animT);
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+window.addEventListener('resize', resize);
+resize();
+
+document.addEventListener('mousemove', e => {
+  mouse.x = e.clientX;
+  mouse.y = e.clientY;
+  cursor.style.left = e.clientX + 'px';
+  cursor.style.top = e.clientY + 'px';
+});
+
+document.addEventListener('touchmove', e => {
+  mouse.x = e.touches[0].clientX;
+  mouse.y = e.touches[0].clientY;
+}, { passive: true });
+
+function spawnSparks(x, y) {
+  for (let i = 0; i < 12; i++) {
+    const s = document.createElement('div');
+    s.className = 'spark';
+    const angle = Math.random() * Math.PI * 2;
+    const dist = 40 + Math.random() * 80;
+    s.style.left = x + 'px';
+    s.style.top = y + 'px';
+    s.style.setProperty('--dx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--dy', Math.sin(angle) * dist + 'px');
+    s.style.background = Math.random() < 0.5 ? '#f0d080' : '#2dd4bf';
+    s.style.animationDuration = (0.8 + Math.random() * 0.8) + 's';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 1600);
+  }
+}
+
+function showWish(x, y) {
+  const w = wishes[wishIndex % wishes.length];
+  wishIndex++;
+  wishDisplay.textContent = '"' + w + '"';
+  wishDisplay.classList.add('show');
+  if (wishTimeout) clearTimeout(wishTimeout);
+  wishTimeout = setTimeout(() => wishDisplay.classList.remove('show'), 2800);
+}
+
+document.addEventListener('click', e => {
+  spawnSparks(e.clientX, e.clientY);
+  showWish(e.clientX, e.clientY);
+});
+
+document.addEventListener('touchstart', e => {
+  const t = e.touches[0];
+  spawnSparks(t.clientX, t.clientY);
+  showWish(t.clientX, t.clientY);
+}, { passive: true });
+</script>
+</body>
+</html>
