@@ -697,6 +697,174 @@
     0%   { opacity: 1; transform: translate(0,0) scale(1); }
     100% { opacity: 0; transform: translate(var(--sx), var(--sy)) scale(0); }
   }
+
+  /* ===== COLLECTION DRAWER ===== */
+  .drawer-tab {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 300;
+    width: min(420px, 100vw);
+  }
+  .drawer-pull {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background: linear-gradient(180deg, #2a1060 0%, #1a0a3e 100%);
+    border: 2px solid var(--yellow);
+    border-bottom: none;
+    border-radius: 16px 16px 0 0;
+    padding: 8px 20px;
+    cursor: pointer;
+    margin: 0 auto;
+    width: fit-content;
+    box-shadow: 0 -4px 16px rgba(255,214,10,0.2);
+    transition: background 0.2s;
+  }
+  .drawer-pull:active { background: #3a1880; }
+  .drawer-pull-label {
+    font-family: "Fredoka One", cursive;
+    font-size: 0.85rem;
+    color: var(--yellow);
+    letter-spacing: 2px;
+  }
+  .drawer-pull-arrow {
+    font-size: 0.75rem;
+    color: var(--yellow);
+    transition: transform 0.3s;
+    display: inline-block;
+  }
+  .drawer-tab.open .drawer-pull-arrow { transform: rotate(180deg); }
+  .drawer-count {
+    font-family: "Fredoka One", cursive;
+    font-size: 0.7rem;
+    background: var(--yellow);
+    color: #222;
+    border-radius: 10px;
+    padding: 1px 7px;
+  }
+  .drawer-body {
+    background: linear-gradient(180deg, #1a0a3e 0%, #110728 100%);
+    border: 2px solid var(--yellow);
+    border-bottom: none;
+    max-height: 0;
+    overflow: hidden;
+    transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .drawer-tab.open .drawer-body { max-height: 55vh; }
+  .drawer-inner {
+    padding: 14px 12px 10px;
+    overflow-y: auto;
+    max-height: 55vh;
+    -webkit-overflow-scrolling: touch;
+  }
+  .drawer-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid rgba(255,214,10,0.2);
+  }
+  .drawer-title {
+    font-family: "Fredoka One", cursive;
+    color: var(--yellow);
+    font-size: 0.9rem;
+    letter-spacing: 2px;
+  }
+  .drawer-progress {
+    font-family: "Fredoka One", cursive;
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.5);
+    letter-spacing: 1px;
+  }
+  .rarity-section-label {
+    font-family: "Fredoka One", cursive;
+    font-size: 0.65rem;
+    letter-spacing: 3px;
+    margin: 10px 0 6px;
+    padding: 2px 8px;
+    border-radius: 10px;
+    display: inline-block;
+  }
+  .rsl-legendary { background: linear-gradient(90deg, #ff6b00, #ffd60a); color: #111; }
+  .rsl-epic      { background: #93f; color: #fff; }
+  .rsl-rare      { background: #46f; color: #fff; }
+  .rsl-common    { background: #4a6; color: #fff; }
+  .slot-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 6px;
+    margin-bottom: 4px;
+  }
+  .slot-item {
+    aspect-ratio: 1;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+    border: 1px solid rgba(255,255,255,0.08);
+    background: rgba(0,0,0,0.3);
+    cursor: default;
+  }
+  .slot-item.got {
+    border-color: rgba(255,214,10,0.3);
+    box-shadow: 0 0 8px rgba(255,214,10,0.15);
+  }
+  .slot-item.got img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 4px;
+    display: block;
+  }
+  .slot-item.got.legendary {
+    border-color: var(--yellow);
+    box-shadow: 0 0 14px rgba(255,214,10,0.6);
+  }
+  .slot-item.ghost img {
+    width: 100%; height: 100%;
+    object-fit: contain;
+    padding: 4px;
+    display: block;
+    filter: brightness(0.12) blur(3px) saturate(0);
+  }
+  .slot-item .slot-tooltip {
+    display: none;
+    position: absolute;
+    bottom: calc(100% + 6px);
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(10,4,30,0.95);
+    border: 1px solid var(--yellow);
+    border-radius: 8px;
+    padding: 4px 8px;
+    font-family: "Fredoka One", cursive;
+    font-size: 0.6rem;
+    color: #fff;
+    white-space: nowrap;
+    z-index: 400;
+    pointer-events: none;
+    letter-spacing: 1px;
+  }
+  .slot-item.got:hover .slot-tooltip,
+  .slot-item.got:active .slot-tooltip { display: block; }
+  .new-badge {
+    position: absolute;
+    top: 2px; right: 2px;
+    background: var(--red);
+    color: #fff;
+    font-family: "Fredoka One", cursive;
+    font-size: 0.5rem;
+    border-radius: 6px;
+    padding: 1px 4px;
+    letter-spacing: 1px;
+    animation: newPulse 1.5s ease-in-out infinite;
+  }
+  @keyframes newPulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+  }
 </style>
 </head>
 <body>
@@ -779,6 +947,25 @@
     <div class="prize-name" id="prizeName">???</div>
     <div class="prize-desc" id="prizeDesc"></div>
     <button class="prize-close" id="prizeClose">KEEP IT! ✨</button>
+  </div>
+</div>
+
+
+<!-- Collection Drawer -->
+<div class="drawer-tab" id="drawerTab">
+  <div class="drawer-pull" id="drawerPull">
+    <span class="drawer-pull-label">MY COLLECTION</span>
+    <span class="drawer-count" id="drawerCount">0 / 0</span>
+    <span class="drawer-pull-arrow">&#9650;</span>
+  </div>
+  <div class="drawer-body">
+    <div class="drawer-inner" id="drawerInner">
+      <div class="drawer-header">
+        <span class="drawer-title">CAPSULE COLLECTION</span>
+        <span class="drawer-progress" id="drawerProgress">0 / 0 FOUND</span>
+      </div>
+      <div id="drawerGrid"></div>
+    </div>
   </div>
 </div>
 
@@ -1005,9 +1192,11 @@ async function doGumball() {
   cap.remove();
 
   // 5. Pick prize
-  const prize = pickPrize();
+  const prizeIdx = POOL[Math.floor(Math.random() * POOL.length)];
+  const prize = PRIZES[prizeIdx];
   collected++;
   collBar.textContent = 'CAPSULES COLLECTED: ' + collected;
+  markCollected(prizeIdx);
 
   // 6. Show prize
   rarityBadge.className = 'rarity-badge rarity-' + prize.rarity;
@@ -1053,6 +1242,82 @@ prizeClose.addEventListener('click', () => {
 });
 
 insertBtn.addEventListener('click', doGumball);
+
+
+// ===== COLLECTION DRAWER =====
+const RARITY_ORDER = ['legendary','epic','rare','common'];
+const collectedSet = new Set(); // prize indices collected
+const newlyGot = new Set();     // flashes NEW badge briefly
+
+function buildDrawer() {
+  const grid = document.getElementById('drawerGrid');
+  grid.innerHTML = '';
+  const total = PRIZES.length;
+  const gotCount = collectedSet.size;
+  document.getElementById('drawerCount').textContent = gotCount + ' / ' + total;
+  document.getElementById('drawerProgress').textContent = gotCount + ' / ' + total + ' FOUND';
+
+  RARITY_ORDER.forEach(rarity => {
+    const group = PRIZES.map((p,i) => ({p,i})).filter(({p}) => p.rarity === rarity);
+    if (!group.length) return;
+    const label = document.createElement('div');
+    label.className = 'rarity-section-label rsl-' + rarity;
+    label.textContent = rarity.toUpperCase();
+    grid.appendChild(label);
+    const g = document.createElement('div');
+    g.className = 'slot-grid';
+    group.forEach(({p, i}) => {
+      const slot = document.createElement('div');
+      const isGot = collectedSet.has(i);
+      slot.className = 'slot-item ' + (isGot ? 'got ' + rarity : 'ghost');
+      const img = document.createElement('img');
+      img.src = p.img || '';
+      img.alt = p.name;
+      if (!p.img) {
+        // no image — show emoji placeholder
+        img.style.display = 'none';
+        const em = document.createElement('div');
+        em.style.cssText = 'width:100%;height:100%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;' + (isGot ? '' : 'filter:brightness(0.1)');
+        em.textContent = p.emoji || '?';
+        slot.appendChild(em);
+      } else {
+        slot.appendChild(img);
+      }
+      // tooltip (collected only shows name)
+      const tip = document.createElement('div');
+      tip.className = 'slot-tooltip';
+      tip.textContent = isGot ? p.name : '???';
+      slot.appendChild(tip);
+      // NEW badge
+      if (newlyGot.has(i)) {
+        const nb = document.createElement('div');
+        nb.className = 'new-badge';
+        nb.textContent = 'NEW';
+        slot.appendChild(nb);
+      }
+      g.appendChild(slot);
+    });
+    grid.appendChild(g);
+  });
+}
+
+document.getElementById('drawerPull').addEventListener('click', () => {
+  const tab = document.getElementById('drawerTab');
+  tab.classList.toggle('open');
+  if (tab.classList.contains('open')) buildDrawer();
+});
+
+function markCollected(prizeIndex) {
+  const isNew = !collectedSet.has(prizeIndex);
+  collectedSet.add(prizeIndex);
+  if (isNew) {
+    newlyGot.add(prizeIndex);
+    setTimeout(() => { newlyGot.delete(prizeIndex); }, 8000);
+  }
+  // update count badge on pull tab even if closed
+  const total = PRIZES.length;
+  document.getElementById('drawerCount').textContent = collectedSet.size + ' / ' + total;
+}
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
