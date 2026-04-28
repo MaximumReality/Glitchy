@@ -1083,8 +1083,13 @@ const rickAudio = new Audio("sprites/rickroll.mp3");
 rickAudio.loop = true;
 let rickrolled = false;
 
+// Sound effects
+const coinSound = new Audio("sprites/coin.mp3");
+const crankSound = new Audio("sprites/crank.mp3");
+
 const COLORS = ['#e63946','#4cc9f0','#06d6a0','#ffd60a','#b5179e'];
 function randColor() { return COLORS[Math.floor(Math.random() * COLORS.length)]; }
+
 
 let credits = 0;
 let collected = 0;
@@ -1142,6 +1147,8 @@ function flyCoincoin() {
   coinAnim.classList.remove('go');
   void coinAnim.offsetWidth;
   coinAnim.classList.add('go');
+  coinSound.currentTime = 0;
+  coinSound.play().catch(() => {});
 }
 
 async function doGumball() {
@@ -1158,8 +1165,11 @@ async function doGumball() {
   // 2. Turn crank
   crankArm.classList.remove('turning');
   void crankArm.offsetWidth;
+  crankSound.currentTime = 0;
+  crankSound.play().catch(() => {});
   crankArm.classList.add('turning');
   await sleep(650);
+
 
   // 3. Drop capsule from neck area
   const machine = document.getElementById('machine');
@@ -1320,11 +1330,33 @@ function markCollected(prizeIndex) {
   // update count badge on pull tab even if closed
   const total = PRIZES.length;
   document.getElementById('drawerCount').textContent = collectedSet.size + ' / ' + total;
+  saveProgress();
+}
+
+function saveProgress() {
+  const data = {
+    collected: Array.from(collectedSet),
+    total: collected
+  };
+  localStorage.setItem("capsuleSave", JSON.stringify(data));
+}
+
+function loadProgress() {
+  try {
+    const data = JSON.parse(localStorage.getItem("capsuleSave"));
+    if (!data) return;
+    data.collected.forEach(i => collectedSet.add(i));
+    collected = data.total || 0;
+    collBar.textContent = 'CAPSULES COLLECTED: ' + collected;
+    document.getElementById('drawerCount').textContent = collectedSet.size + ' / ' + PRIZES.length;
+  } catch(e) {}
 }
 
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
+loadProgress();
 updateCredits();
+
 </script>
 </body>
 </html>
