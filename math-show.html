@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Characters Show</title>
+
+<style>
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #111;
+  color: #fff;
+  padding: 20px;
+}
+
+h1 {
+  text-align: center;
+}
+
+#stage {
+  margin: 20px 0;
+  min-height: 300px;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 10px 14px;
+  margin: 8px 0;
+  border-radius: 16px;
+  line-height: 1.4;
+}
+
+.pi { background: #ff7675; align-self: flex-start; }
+.e { background: #74b9ff; align-self: flex-end; }
+.phi { background: #55efc4; align-self: flex-start; }
+.sqrt2 { background: #ffeaa7; color: #000; align-self: flex-end; }
+
+#controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+button {
+  flex: 1 1 45%;
+  padding: 10px;
+  border: none;
+  border-radius: 10px;
+  background: #333;
+  color: white;
+  font-size: 14px;
+}
+
+button:active {
+  background: #555;
+}
+
+#calc {
+  margin-top: 20px;
+}
+
+#display {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  margin-bottom: 10px;
+  border-radius: 8px;
+  border: none;
+}
+
+#calc-buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 6px;
+}
+
+#calc-buttons button {
+  padding: 12px;
+  border-radius: 8px;
+  border: none;
+  background: #222;
+  color: white;
+  font-size: 16px;
+}
+  #char-calc {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  margin-top: 10px;
+}
+
+#char-calc button {
+  padding: 10px;
+  border-radius: 10px;
+  border: none;
+  background: #444;
+  color: white;
+}
+  .calc-card {
+  background: #222;
+  padding: 12px;
+  border-radius: 12px;
+  margin-top: 10px;
+}
+
+.calc-card h3 {
+  margin: 0 0 8px 0;
+  font-size: 16px;
+}
+
+.calc-card input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  margin-bottom: 8px;
+}
+
+.calc-card button {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: none;
+  background: #555;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎭 Math Character Show</h1>
+
+<div id="stage"></div>
+
+<div id="controls">
+  <button onclick="introPi()">Pi 🥧</button>
+  <button onclick="introE()">e 📈</button>
+  <button onclick="introPhi()">Phi 🌻</button>
+  <button onclick="startDebate()">Start Debate</button>
+  <button onclick="addSqrt2()">Add √2 🪜</button>
+  <button onclick="resolution()">Finish</button>
+</div>
+<h2>🧮 Calculator</h2>
+
+<div id="calc">
+  <input id="display" placeholder="Enter expression..." />
+  <div id="calc-buttons">
+    <button onclick="press('7')">7</button>
+    <button onclick="press('8')">8</button>
+    <button onclick="press('9')">9</button>
+    <button onclick="press('/')">÷</button>
+
+    <button onclick="press('4')">4</button>
+    <button onclick="press('5')">5</button>
+    <button onclick="press('6')">6</button>
+    <button onclick="press('*')">×</button>
+
+    <button onclick="press('1')">1</button>
+    <button onclick="press('2')">2</button>
+    <button onclick="press('3')">3</button>
+    <button onclick="press('-')">−</button>
+
+    <button onclick="press('0')">0</button>
+    <button onclick="press('.')">.</button>
+    <button onclick="calculate()">=</button>
+    <button onclick="press('+')">+</button>
+
+    <button onclick="clearDisplay()">C</button>
+    <button onclick="usePi()">π</button>
+    <button onclick="useE()">e</button>
+    <button onclick="usePhi()">φ</button>
+  </div>
+  <h2>🎯 Character Calculations</h2>
+
+<div class="calc-card">
+  <h3>🥧 Pi – Circle Area</h3>
+  <input id="pi-input" type="number" placeholder="Radius..." />
+  <button onclick="circleCalc()">Calculate</button>
+</div>
+
+<div class="calc-card">
+  <h3>📈 e – Growth</h3>
+  <input id="e-input" type="number" placeholder="Value..." />
+  <button onclick="growthCalc()">Calculate</button>
+</div>
+
+<div class="calc-card">
+  <h3>🌻 Phi – Golden Ratio</h3>
+  <input id="phi-input" type="number" placeholder="Base number..." />
+  <button onclick="goldenCalc()">Calculate</button>
+</div>
+
+<div class="calc-card">
+  <h3>🪜 √2 – Diagonal</h3>
+  <input id="sqrt-input" type="number" placeholder="Side length..." />
+  <button onclick="triangleCalc()">Calculate</button>
+</div>
+</div>
+<script>
+const stage = document.getElementById("stage");
+
+function say(text, className) {
+  const div = document.createElement("div");
+  div.className = "bubble " + className;
+  div.innerText = text;
+  stage.appendChild(div);
+  stage.scrollTop = stage.scrollHeight;
+}
+
+// values
+const pi = Math.PI;
+const e = Math.E;
+const phi = (1 + Math.sqrt(5)) / 2;
+const sqrt2 = Math.sqrt(2);
+
+// functions
+function introPi() {
+  say("Pi 🥧: Hi everyone! I’m Pi, the circle’s best friend.", "pi");
+  say("Pi 🥧: My value is " + pi + " and I go on forever!", "pi");
+}
+
+function introE() {
+  say("e 📈: Hello! I’m e, the natural base.", "e");
+  say("e 📈: My value is " + e + " and I power exponential growth.", "e");
+}
+
+function introPhi() {
+  say("Phi 🌻: Greetings! I’m Phi, the golden ratio.", "phi");
+  say("Phi 🌻: My value is " + phi + " and I bring beauty to art and nature.", "phi");
+}
+
+function startDebate() {
+  say("Pi 🥧: Clearly I’m the most important—without me, circles wouldn’t exist!", "pi");
+  say("e 📈: Excuse me? Without me, calculus and compound interest collapse!", "e");
+  say("Phi 🌻: Gentlemen, without me, the Parthenon would look like a shoebox.", "phi");
+
+  say("Pi 🥧: At least I’m delicious. People bake me into pies!", "pi");
+  say("e 📈: Delicious? You’re irrational! Literally.", "e");
+  say("Phi 🌻: And I’m irrational too, but at least I’m fashionable.", "phi");
+}
+
+function addSqrt2() {
+  say("√2 🪜: Hey folks, mind if I cut in?", "sqrt2");
+  say("√2 🪜: My value is " + sqrt2 + " and I’m irrational too—", "sqrt2");
+  say("√2 🪜: But unlike you three, I’m practical. I build right angles!", "sqrt2");
+
+  say("Pi 🥧: Who invited the square root?", "pi");
+  say("e 📈: He’s got a point… without him, geometry falls apart.", "e");
+  say("Phi 🌻: And he’s symmetrical. I like his style.", "phi");
+}
+
+function resolution() {
+  say("Pi 🥧: Fine, maybe we’re all important.", "pi");
+  say("e 📈: Agreed. Math wouldn’t be the same without us.", "e");
+  say("Phi 🌻: Then let’s call it a draw—beauty, growth, circles, and right angles together!", "phi");
+  say("√2 🪜: Finally, some rational thinking… oh wait, none of us are rational!", "sqrt2");
+}
+  const display = document.getElementById("display");
+
+function press(val) {
+  display.value += val;
+}
+
+function clearDisplay() {
+  display.value = "";
+}
+
+function usePi() {
+  display.value += Math.PI;
+}
+
+function useE() {
+  display.value += Math.E;
+}
+
+function usePhi() {
+  display.value += (1 + Math.sqrt(5)) / 2;
+}
+
+function calculate() {
+  try {
+    const result = eval(display.value);
+    say("🧮 Result: " + result, "sqrt2");
+    display.value = result;
+  } catch {
+    say("🧮 Oops! Invalid math expression.", "sqrt2");
+  }
+}
+  if (result > 10) {
+  say("e 📈: That escalated quickly!", "e");
+} else {
+  say("Pi 🥧: Nice and simple!", "pi");
+}
+  function circleCalc() {
+  const r = parseFloat(document.getElementById("pi-input").value);
+  if (isNaN(r)) return;
+
+  const area = Math.PI * r * r;
+  say("Pi 🥧: Circle with radius " + r + " → area " + area, "pi");
+}
+
+function growthCalc() {
+  const x = parseFloat(document.getElementById("e-input").value);
+  if (isNaN(x)) return;
+
+  const result = Math.exp(x);
+  say("e 📈: e^" + x + " = " + result, "e");
+}
+
+function goldenCalc() {
+  const a = parseFloat(document.getElementById("phi-input").value);
+  if (isNaN(a)) return;
+
+  const phi = (1 + Math.sqrt(5)) / 2;
+  const result = a * phi;
+
+  say("Phi 🌻: " + a + " × φ = " + result, "phi");
+}
+
+function triangleCalc() {
+  const side = parseFloat(document.getElementById("sqrt-input").value);
+  if (isNaN(side)) return;
+
+  const diag = side * Math.sqrt(2);
+  say("√2 🪜: diagonal = " + diag, "sqrt2");
+}
+</script>
+
+</body>
+</html>
