@@ -3,329 +3,914 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Math Characters Show</title>
-
+<title>∞ MATH CHARACTER SHOW ∞</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Rajdhani:wght@300;500;700&display=swap" rel="stylesheet">
 <style>
-body {
-  font-family: system-ui, -apple-system, sans-serif;
-  background: #111;
-  color: #fff;
-  padding: 20px;
+:root {
+  --pi: #ff2d78;
+  --e: #00d4ff;
+  --phi: #aaff00;
+  --sqrt2: #ffaa00;
+  --bg: #080810;
+  --panel: #0d0d1a;
+  --border: rgba(255,255,255,0.07);
+  --glow: rgba(0,212,255,0.15);
 }
 
-h1 {
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Rajdhani', sans-serif;
+  background: var(--bg);
+  color: #e0e0ff;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Animated grid background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 40px 40px;
+  animation: gridPulse 8s ease-in-out infinite;
+  pointer-events: none;
+  z-index: 0;
+}
+
+@keyframes gridPulse {
+  0%, 100% { opacity: 0.5; }
+  50% { opacity: 1; }
+}
+
+body::after {
+  content: '';
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--pi), var(--e), var(--phi), var(--sqrt2), transparent);
+  animation: scanline 3s linear infinite;
+  z-index: 100;
+}
+
+@keyframes scanline {
+  0% { top: 0; opacity: 1; }
+  100% { top: 100vh; opacity: 0; }
+}
+
+.wrap {
+  position: relative;
+  z-index: 1;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* HEADER */
+header {
   text-align: center;
+  padding: 24px 0 16px;
+}
+
+header h1 {
+  font-family: 'Orbitron', monospace;
+  font-size: clamp(18px, 5vw, 28px);
+  font-weight: 900;
+  letter-spacing: 4px;
+  background: linear-gradient(135deg, var(--pi), var(--e), var(--phi));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-shadow: none;
+  animation: titleGlow 3s ease-in-out infinite;
+}
+
+@keyframes titleGlow {
+  0%, 100% { filter: drop-shadow(0 0 6px rgba(0,212,255,0.4)); }
+  50% { filter: drop-shadow(0 0 20px rgba(0,212,255,0.8)); }
+}
+
+header p {
+  font-family: 'Share Tech Mono', monospace;
+  color: rgba(255,255,255,0.35);
+  font-size: 11px;
+  letter-spacing: 3px;
+  margin-top: 6px;
+}
+
+/* CHARACTER CARDS */
+.char-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+.char-card {
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.char-card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 0.2s;
+  border-radius: 12px;
+}
+
+.char-card:active { transform: scale(0.96); }
+
+.char-card.pi-card { border-color: rgba(255,45,120,0.3); }
+.char-card.pi-card::before { background: radial-gradient(circle at 50% 0%, rgba(255,45,120,0.12), transparent 70%); }
+.char-card.pi-card:hover::before { opacity: 1; }
+
+.char-card.e-card { border-color: rgba(0,212,255,0.3); }
+.char-card.e-card::before { background: radial-gradient(circle at 50% 0%, rgba(0,212,255,0.12), transparent 70%); }
+.char-card.e-card:hover::before { opacity: 1; }
+
+.char-card.phi-card { border-color: rgba(170,255,0,0.3); }
+.char-card.phi-card::before { background: radial-gradient(circle at 50% 0%, rgba(170,255,0,0.12), transparent 70%); }
+.char-card.phi-card:hover::before { opacity: 1; }
+
+.char-card.sqrt2-card { border-color: rgba(255,170,0,0.3); }
+.char-card.sqrt2-card::before { background: radial-gradient(circle at 50% 0%, rgba(255,170,0,0.12), transparent 70%); }
+.char-card.sqrt2-card:hover::before { opacity: 1; }
+
+.char-emoji {
+  font-size: 28px;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.char-name {
+  font-family: 'Orbitron', monospace;
+  font-size: 13px;
+  font-weight: 700;
+  display: block;
+}
+
+.char-card.pi-card .char-name { color: var(--pi); }
+.char-card.e-card .char-name { color: var(--e); }
+.char-card.phi-card .char-name { color: var(--phi); }
+.char-card.sqrt2-card .char-name { color: var(--sqrt2); }
+
+.char-val {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 2px;
+}
+
+/* STAGE */
+.stage-wrap {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.stage-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
+}
+
+.stage-header span {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 2px;
+  color: rgba(255,255,255,0.35);
+}
+
+.stage-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--phi);
+  box-shadow: 0 0 8px var(--phi);
+  animation: blink 2s ease-in-out infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.2; }
 }
 
 #stage {
-  margin: 20px 0;
-  min-height: 300px;
+  padding: 14px;
+  min-height: 180px;
+  max-height: 320px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  scroll-behavior: smooth;
 }
+
+#stage::-webkit-scrollbar { width: 3px; }
+#stage::-webkit-scrollbar-track { background: transparent; }
+#stage::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.15); border-radius: 2px; }
 
 .bubble {
-  max-width: 80%;
+  max-width: 85%;
   padding: 10px 14px;
-  margin: 8px 0;
-  border-radius: 16px;
-  line-height: 1.4;
+  border-radius: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 500;
+  animation: bubbleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  position: relative;
 }
 
-.pi { background: #ff7675; align-self: flex-start; }
-.e { background: #74b9ff; align-self: flex-end; }
-.phi { background: #55efc4; align-self: flex-start; }
-.sqrt2 { background: #ffeaa7; color: #000; align-self: flex-end; }
+@keyframes bubbleIn {
+  from { opacity: 0; transform: translateY(10px) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
 
-#controls {
-  display: flex;
-  flex-wrap: wrap;
+.bubble.pi {
+  background: linear-gradient(135deg, rgba(255,45,120,0.2), rgba(255,45,120,0.08));
+  border: 1px solid rgba(255,45,120,0.35);
+  border-left: 3px solid var(--pi);
+  align-self: flex-start;
+  box-shadow: 0 4px 20px rgba(255,45,120,0.1);
+}
+
+.bubble.e {
+  background: linear-gradient(135deg, rgba(0,212,255,0.2), rgba(0,212,255,0.08));
+  border: 1px solid rgba(0,212,255,0.35);
+  border-right: 3px solid var(--e);
+  align-self: flex-end;
+  box-shadow: 0 4px 20px rgba(0,212,255,0.1);
+}
+
+.bubble.phi {
+  background: linear-gradient(135deg, rgba(170,255,0,0.15), rgba(170,255,0,0.05));
+  border: 1px solid rgba(170,255,0,0.3);
+  border-left: 3px solid var(--phi);
+  align-self: flex-start;
+  box-shadow: 0 4px 20px rgba(170,255,0,0.08);
+}
+
+.bubble.sqrt2 {
+  background: linear-gradient(135deg, rgba(255,170,0,0.18), rgba(255,170,0,0.06));
+  border: 1px solid rgba(255,170,0,0.3);
+  border-right: 3px solid var(--sqrt2);
+  align-self: flex-end;
+  box-shadow: 0 4px 20px rgba(255,170,0,0.08);
+}
+
+.bubble.system {
+  background: rgba(255,255,255,0.04);
+  border: 1px solid rgba(255,255,255,0.08);
+  align-self: center;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.5);
+  text-align: center;
+  letter-spacing: 1px;
+}
+
+/* SCENE BUTTONS */
+.scene-section {
+  margin-bottom: 16px;
+}
+
+.section-label {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  letter-spacing: 3px;
+  color: rgba(255,255,255,0.3);
+  margin-bottom: 8px;
+  padding-left: 2px;
+}
+
+.scene-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
   gap: 8px;
 }
 
-button {
-  flex: 1 1 45%;
-  padding: 10px;
-  border: none;
+.scene-btn {
+  padding: 12px 8px;
+  border: 1px solid var(--border);
   border-radius: 10px;
-  background: #333;
-  color: white;
+  background: var(--panel);
+  color: #e0e0ff;
+  font-family: 'Rajdhani', sans-serif;
   font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
 }
 
-button:active {
-  background: #555;
+.scene-btn:hover, .scene-btn:active {
+  background: rgba(255,255,255,0.06);
+  border-color: rgba(255,255,255,0.2);
+  transform: translateY(-1px);
 }
 
-#calc {
-  margin-top: 20px;
+.scene-btn.danger {
+  border-color: rgba(255,45,120,0.25);
+  color: var(--pi);
 }
+.scene-btn.info {
+  border-color: rgba(0,212,255,0.25);
+  color: var(--e);
+}
+.scene-btn.success {
+  border-color: rgba(170,255,0,0.25);
+  color: var(--phi);
+}
+.scene-btn.warn {
+  border-color: rgba(255,170,0,0.25);
+  color: var(--sqrt2);
+}
+.scene-btn.full {
+  grid-column: span 2;
+}
+
+/* CALCULATOR */
+.calc-section {
+  background: var(--panel);
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  overflow: hidden;
+  margin-bottom: 16px;
+}
+
+.calc-tab-bar {
+  display: flex;
+  border-bottom: 1px solid var(--border);
+}
+
+.calc-tab {
+  flex: 1;
+  padding: 10px 4px;
+  background: none;
+  border: none;
+  color: rgba(255,255,255,0.35);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  cursor: pointer;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+
+.calc-tab.active {
+  color: var(--e);
+  border-bottom: 2px solid var(--e);
+  margin-bottom: -1px;
+}
+
+.calc-panel { display: none; padding: 14px; }
+.calc-panel.active { display: block; }
 
 #display {
   width: 100%;
-  padding: 10px;
-  font-size: 16px;
+  padding: 12px 14px;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 18px;
+  background: rgba(0,0,0,0.4);
+  border: 1px solid rgba(0,212,255,0.2);
+  border-radius: 10px;
+  color: var(--e);
   margin-bottom: 10px;
-  border-radius: 8px;
-  border: none;
+  outline: none;
+  transition: border-color 0.2s;
 }
 
-#calc-buttons {
+#display:focus {
+  border-color: rgba(0,212,255,0.5);
+  box-shadow: 0 0 12px rgba(0,212,255,0.1);
+}
+
+.calc-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 6px;
 }
 
-#calc-buttons button {
-  padding: 12px;
+.calc-btn {
+  padding: 14px 6px;
+  border: 1px solid var(--border);
   border-radius: 8px;
-  border: none;
-  background: #222;
-  color: white;
+  background: rgba(255,255,255,0.03);
+  color: #e0e0ff;
+  font-family: 'Share Tech Mono', monospace;
   font-size: 16px;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
-  #char-calc {
+
+.calc-btn:active { transform: scale(0.93); background: rgba(255,255,255,0.1); }
+
+.calc-btn.op {
+  background: rgba(0,212,255,0.08);
+  border-color: rgba(0,212,255,0.2);
+  color: var(--e);
+}
+.calc-btn.eq {
+  background: rgba(0,212,255,0.15);
+  border-color: rgba(0,212,255,0.4);
+  color: var(--e);
+}
+.calc-btn.clr {
+  background: rgba(255,45,120,0.08);
+  border-color: rgba(255,45,120,0.2);
+  color: var(--pi);
+}
+.calc-btn.const {
+  font-size: 13px;
+}
+.calc-btn.const.pi-c { color: var(--pi); border-color: rgba(255,45,120,0.2); background: rgba(255,45,120,0.06); }
+.calc-btn.const.e-c { color: var(--e); border-color: rgba(0,212,255,0.2); background: rgba(0,212,255,0.06); }
+.calc-btn.const.phi-c { color: var(--phi); border-color: rgba(170,255,0,0.2); background: rgba(170,255,0,0.06); }
+.calc-btn.const.sqrt2-c { color: var(--sqrt2); border-color: rgba(255,170,0,0.2); background: rgba(255,170,0,0.06); }
+
+/* CHARACTER CALC CARDS */
+.char-calc-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-  margin-top: 10px;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
 }
 
-#char-calc button {
-  padding: 10px;
-  border-radius: 10px;
-  border: none;
-  background: #444;
-  color: white;
-}
-  .calc-card {
-  background: #222;
-  padding: 12px;
+.char-calc-card {
   border-radius: 12px;
-  margin-top: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
 }
 
-.calc-card h3 {
-  margin: 0 0 8px 0;
-  font-size: 16px;
-}
+.char-calc-card.pi-cc { border-color: rgba(255,45,120,0.25); background: rgba(255,45,120,0.05); }
+.char-calc-card.e-cc { border-color: rgba(0,212,255,0.25); background: rgba(0,212,255,0.05); }
+.char-calc-card.phi-cc { border-color: rgba(170,255,0,0.2); background: rgba(170,255,0,0.04); }
+.char-calc-card.sqrt2-cc { border-color: rgba(255,170,0,0.25); background: rgba(255,170,0,0.05); }
 
-.calc-card input {
-  width: 100%;
-  padding: 8px;
-  border-radius: 8px;
-  border: none;
+.char-calc-card h3 {
+  font-family: 'Orbitron', monospace;
+  font-size: 11px;
+  font-weight: 700;
   margin-bottom: 8px;
 }
 
-.calc-card button {
+.pi-cc h3 { color: var(--pi); }
+.e-cc h3 { color: var(--e); }
+.phi-cc h3 { color: var(--phi); }
+.sqrt2-cc h3 { color: var(--sqrt2); }
+
+.char-calc-card input {
   width: 100%;
-  padding: 8px;
-  border-radius: 8px;
+  padding: 7px 10px;
+  background: rgba(0,0,0,0.3);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 7px;
+  color: #e0e0ff;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 13px;
+  margin-bottom: 7px;
+  outline: none;
+}
+
+.char-calc-card input:focus { border-color: rgba(255,255,255,0.25); }
+
+.char-calc-card button {
+  width: 100%;
+  padding: 7px;
   border: none;
-  background: #555;
-  color: white;
+  border-radius: 7px;
+  font-family: 'Rajdhani', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.char-calc-card button:active { transform: scale(0.95); }
+
+.pi-cc button { background: rgba(255,45,120,0.25); color: var(--pi); }
+.e-cc button { background: rgba(0,212,255,0.2); color: var(--e); }
+.phi-cc button { background: rgba(170,255,0,0.15); color: var(--phi); }
+.sqrt2-cc button { background: rgba(255,170,0,0.2); color: var(--sqrt2); }
+
+.result-display {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  margin-top: 6px;
+  padding: 6px 8px;
+  background: rgba(0,0,0,0.3);
+  border-radius: 6px;
+  min-height: 28px;
+  color: rgba(255,255,255,0.7);
+  word-break: break-all;
+}
+
+/* FACTS TICKER */
+.facts-bar {
+  background: rgba(0,212,255,0.05);
+  border: 1px solid rgba(0,212,255,0.1);
+  border-radius: 10px;
+  padding: 10px 14px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.facts-inner {
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  color: rgba(255,255,255,0.45);
+  letter-spacing: 1px;
+  animation: ticker 20s linear infinite;
+  white-space: nowrap;
+}
+
+@keyframes ticker {
+  0% { transform: translateX(100%); }
+  100% { transform: translateX(-100%); }
+}
+
+/* CLEAR STAGE BTN */
+.clear-btn {
+  background: none;
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 8px;
+  color: rgba(255,255,255,0.3);
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 11px;
+  padding: 6px 12px;
+  cursor: pointer;
+  letter-spacing: 1px;
+  transition: all 0.2s;
+}
+
+.clear-btn:hover { color: rgba(255,255,255,0.6); border-color: rgba(255,255,255,0.2); }
+
+/* FOOTER */
+footer {
+  text-align: center;
+  padding: 20px 0;
+  font-family: 'Share Tech Mono', monospace;
+  font-size: 10px;
+  color: rgba(255,255,255,0.15);
+  letter-spacing: 2px;
 }
 </style>
 </head>
-
 <body>
 
-<h1>🎭 Math Character Show</h1>
+<div class="wrap">
 
-<div id="stage"></div>
+  <header>
+    <h1>∞ MATH CHARACTER SHOW ∞</h1>
+    <p>IRRATIONAL · TRANSCENDENTAL · ETERNAL</p>
+  </header>
 
-<div id="controls">
-  <button onclick="introPi()">Pi 🥧</button>
-  <button onclick="introE()">e 📈</button>
-  <button onclick="introPhi()">Phi 🌻</button>
-  <button onclick="startDebate()">Start Debate</button>
-  <button onclick="addSqrt2()">Add √2 🪜</button>
-  <button onclick="resolution()">Finish</button>
-</div>
-<h2>🧮 Calculator</h2>
-
-<div id="calc">
-  <input id="display" placeholder="Enter expression..." />
-  <div id="calc-buttons">
-    <button onclick="press('7')">7</button>
-    <button onclick="press('8')">8</button>
-    <button onclick="press('9')">9</button>
-    <button onclick="press('/')">÷</button>
-
-    <button onclick="press('4')">4</button>
-    <button onclick="press('5')">5</button>
-    <button onclick="press('6')">6</button>
-    <button onclick="press('*')">×</button>
-
-    <button onclick="press('1')">1</button>
-    <button onclick="press('2')">2</button>
-    <button onclick="press('3')">3</button>
-    <button onclick="press('-')">−</button>
-
-    <button onclick="press('0')">0</button>
-    <button onclick="press('.')">.</button>
-    <button onclick="calculate()">=</button>
-    <button onclick="press('+')">+</button>
-
-    <button onclick="clearDisplay()">C</button>
-    <button onclick="usePi()">π</button>
-    <button onclick="useE()">e</button>
-    <button onclick="usePhi()">φ</button>
+  <!-- FACTS TICKER -->
+  <div class="facts-bar">
+    <div class="facts-inner">
+      π = 3.14159265... &nbsp;|&nbsp; e = 2.71828182... &nbsp;|&nbsp; φ = 1.61803398... &nbsp;|&nbsp; √2 = 1.41421356... &nbsp;|&nbsp; π + e ≈ 5.8598 &nbsp;|&nbsp; φ² = φ + 1 &nbsp;|&nbsp; e^(iπ) + 1 = 0 &nbsp;|&nbsp; √2 was the first irrational number, discovered by the ancient Greeks &nbsp;|&nbsp; π appears in Euler's identity, the most beautiful equation in math &nbsp;|&nbsp;
+    </div>
   </div>
-  <h2>🎯 Character Calculations</h2>
 
-<div class="calc-card">
-  <h3>🥧 Pi – Circle Area</h3>
-  <input id="pi-input" type="number" placeholder="Radius..." />
-  <button onclick="circleCalc()">Calculate</button>
+  <!-- CHARACTERS -->
+  <div class="section-label">▸ CAST OF CHARACTERS</div>
+  <div class="char-grid">
+    <div class="char-card pi-card" onclick="introPi()">
+      <span class="char-emoji">🥧</span>
+      <span class="char-name">PI</span>
+      <div class="char-val">3.14159265...</div>
+      <div class="char-val">Circles · Trig · Geometry</div>
+    </div>
+    <div class="char-card e-card" onclick="introE()">
+      <span class="char-emoji">📈</span>
+      <span class="char-name">EULER'S e</span>
+      <div class="char-val">2.71828182...</div>
+      <div class="char-val">Growth · Decay · Calculus</div>
+    </div>
+    <div class="char-card phi-card" onclick="introPhi()">
+      <span class="char-emoji">🌻</span>
+      <span class="char-name">PHI φ</span>
+      <div class="char-val">1.61803398...</div>
+      <div class="char-val">Beauty · Nature · Art</div>
+    </div>
+    <div class="char-card sqrt2-card" onclick="addSqrt2()">
+      <span class="char-emoji">📐</span>
+      <span class="char-name">ROOT TWO</span>
+      <div class="char-val">1.41421356...</div>
+      <div class="char-val">Diagonals · Right Angles</div>
+    </div>
+  </div>
+
+  <!-- STAGE -->
+  <div class="stage-wrap">
+    <div class="stage-header">
+      <span>▸ LIVE STAGE</span>
+      <div style="display:flex; align-items:center; gap:8px;">
+        <button class="clear-btn" onclick="clearStage()">CLEAR</button>
+        <div class="stage-dot"></div>
+      </div>
+    </div>
+    <div id="stage">
+      <div class="bubble system">[ STAGE READY — TAP A CHARACTER TO BEGIN ]</div>
+    </div>
+  </div>
+
+  <!-- SCENE BUTTONS -->
+  <div class="scene-section">
+    <div class="section-label">▸ SCENE SELECT</div>
+    <div class="scene-grid">
+      <button class="scene-btn danger" onclick="introPi()">🥧 Intro Pi</button>
+      <button class="scene-btn info" onclick="introE()">📈 Intro e</button>
+      <button class="scene-btn success" onclick="introPhi()">🌻 Intro Phi</button>
+      <button class="scene-btn warn" onclick="addSqrt2()">📐 Add √2</button>
+      <button class="scene-btn full" style="border-color:rgba(255,255,255,0.15); background: rgba(255,255,255,0.03); color: #e0e0ff;" onclick="startDebate()">⚡ START THE GREAT DEBATE</button>
+      <button class="scene-btn full success" onclick="eulerMoment()">✨ Euler's Identity Moment</button>
+      <button class="scene-btn full" onclick="resolution()">🏆 Resolution & Finale</button>
+    </div>
+  </div>
+
+  <!-- CALCULATOR TABS -->
+  <div class="calc-section">
+    <div class="calc-tab-bar">
+      <button class="calc-tab active" onclick="switchTab(this, 'tab-basic')">CALC</button>
+      <button class="calc-tab" onclick="switchTab(this, 'tab-chars')">CHARACTERS</button>
+    </div>
+
+    <!-- BASIC CALCULATOR -->
+    <div id="tab-basic" class="calc-panel active">
+      <input id="display" placeholder="Enter expression..." readonly />
+      <div class="calc-grid">
+        <button class="calc-btn" onclick="press('7')">7</button>
+        <button class="calc-btn" onclick="press('8')">8</button>
+        <button class="calc-btn" onclick="press('9')">9</button>
+        <button class="calc-btn op" onclick="press('/')">÷</button>
+
+        <button class="calc-btn" onclick="press('4')">4</button>
+        <button class="calc-btn" onclick="press('5')">5</button>
+        <button class="calc-btn" onclick="press('6')">6</button>
+        <button class="calc-btn op" onclick="press('*')">×</button>
+
+        <button class="calc-btn" onclick="press('1')">1</button>
+        <button class="calc-btn" onclick="press('2')">2</button>
+        <button class="calc-btn" onclick="press('3')">3</button>
+        <button class="calc-btn op" onclick="press('-')">−</button>
+
+        <button class="calc-btn" onclick="press('0')">0</button>
+        <button class="calc-btn" onclick="press('.')">.</button>
+        <button class="calc-btn eq" onclick="calculate()">=</button>
+        <button class="calc-btn op" onclick="press('+')">+</button>
+
+        <button class="calc-btn clr" onclick="clearDisplay()">CLR</button>
+        <button class="calc-btn const pi-c" onclick="usePi()">π</button>
+        <button class="calc-btn const e-c" onclick="useE()">e</button>
+        <button class="calc-btn const phi-c" onclick="usePhi()">φ</button>
+
+        <button class="calc-btn op" onclick="press('(')">(</button>
+        <button class="calc-btn op" onclick="press(')')">)</button>
+        <button class="calc-btn const sqrt2-c" onclick="useSqrt2()">√2</button>
+        <button class="calc-btn op" onclick="press('**2')">x²</button>
+      </div>
+    </div>
+
+    <!-- CHARACTER CALCULATORS -->
+    <div id="tab-chars" class="calc-panel">
+      <div class="char-calc-grid">
+
+        <div class="char-calc-card pi-cc">
+          <h3>🥧 PI — CIRCLES</h3>
+          <input id="pi-input" type="number" placeholder="Radius" />
+          <button onclick="circleCalc()">AREA</button>
+          <div class="result-display" id="pi-result">—</div>
+        </div>
+
+        <div class="char-calc-card e-cc">
+          <h3>📈 e — GROWTH</h3>
+          <input id="e-input" type="number" placeholder="Exponent" />
+          <button onclick="growthCalc()">e^x</button>
+          <div class="result-display" id="e-result">—</div>
+        </div>
+
+        <div class="char-calc-card phi-cc">
+          <h3>🌻 PHI — RATIO</h3>
+          <input id="phi-input" type="number" placeholder="Base" />
+          <button onclick="goldenCalc()">× φ</button>
+          <div class="result-display" id="phi-result">—</div>
+        </div>
+
+        <div class="char-calc-card sqrt2-cc">
+          <h3>📐 √2 — DIAGONAL</h3>
+          <input id="sqrt-input" type="number" placeholder="Side" />
+          <button onclick="triangleCalc()">DIAGONAL</button>
+          <div class="result-display" id="sqrt-result">—</div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <footer>∞ ALL NUMBERS ARE IRRATIONAL HERE ∞</footer>
+
 </div>
 
-<div class="calc-card">
-  <h3>📈 e – Growth</h3>
-  <input id="e-input" type="number" placeholder="Value..." />
-  <button onclick="growthCalc()">Calculate</button>
-</div>
-
-<div class="calc-card">
-  <h3>🌻 Phi – Golden Ratio</h3>
-  <input id="phi-input" type="number" placeholder="Base number..." />
-  <button onclick="goldenCalc()">Calculate</button>
-</div>
-
-<div class="calc-card">
-  <h3>🪜 √2 – Diagonal</h3>
-  <input id="sqrt-input" type="number" placeholder="Side length..." />
-  <button onclick="triangleCalc()">Calculate</button>
-</div>
-</div>
 <script>
 const stage = document.getElementById("stage");
-
-function say(text, className) {
-  const div = document.createElement("div");
-  div.className = "bubble " + className;
-  div.innerText = text;
-  stage.appendChild(div);
-  stage.scrollTop = stage.scrollHeight;
-}
-
-// values
 const pi = Math.PI;
 const e = Math.E;
 const phi = (1 + Math.sqrt(5)) / 2;
 const sqrt2 = Math.sqrt(2);
 
-// functions
+let msgQueue = [];
+let playing = false;
+
+function queueSay(text, cls, delay) {
+  msgQueue.push({ text, cls, delay });
+  if (!playing) processQueue();
+}
+
+function processQueue() {
+  if (msgQueue.length === 0) { playing = false; return; }
+  playing = true;
+  const { text, cls, delay } = msgQueue.shift();
+  setTimeout(() => {
+    say(text, cls);
+    processQueue();
+  }, delay || 400);
+}
+
+function say(text, cls) {
+  const div = document.createElement("div");
+  div.className = "bubble " + cls;
+  div.textContent = text;
+  stage.appendChild(div);
+  stage.scrollTop = stage.scrollHeight;
+}
+
+function clearStage() {
+  stage.innerHTML = '<div class="bubble system">[ STAGE CLEARED ]</div>';
+  msgQueue = [];
+  playing = false;
+}
+
 function introPi() {
-  say("Pi 🥧: Hi everyone! I’m Pi, the circle’s best friend.", "pi");
-  say("Pi 🥧: My value is " + pi + " and I go on forever!", "pi");
+  queueSay("Pi 🥧 enters the stage...", "system", 0);
+  queueSay("Pi 🥧: Greetings, humans. I am π, the circle constant.", "pi", 500);
+  queueSay("Pi 🥧: My value begins 3.14159265358979... and never ends.", "pi", 700);
+  queueSay("Pi 🥧: Wherever you find a circle, you'll find me. I am everywhere.", "pi", 700);
+  queueSay("Pi 🥧: People even dedicate March 14th to me. I have a holiday. Do you?", "pi", 800);
 }
 
 function introE() {
-  say("e 📈: Hello! I’m e, the natural base.", "e");
-  say("e 📈: My value is " + e + " and I power exponential growth.", "e");
+  queueSay("e 📈 slides in...", "system", 0);
+  queueSay("e 📈: Hello. I'm Euler's number — the base of natural logarithms.", "e", 500);
+  queueSay("e 📈: My value is 2.71828182845... and I describe how things truly grow.", "e", 700);
+  queueSay("e 📈: Bacteria, compound interest, radioactive decay — all me.", "e", 700);
+  queueSay("e 📈: Also, I appeared in Euler's Identity alongside π. We're... close.", "e", 800);
 }
 
 function introPhi() {
-  say("Phi 🌻: Greetings! I’m Phi, the golden ratio.", "phi");
-  say("Phi 🌻: My value is " + phi + " and I bring beauty to art and nature.", "phi");
+  queueSay("φ 🌻 appears in a golden spiral...", "system", 0);
+  queueSay("Phi 🌻: Ah. Hello. I am φ, the Golden Ratio.", "phi", 500);
+  queueSay("Phi 🌻: My value is 1.61803398... and I am the ratio of beauty.", "phi", 700);
+  queueSay("Phi 🌻: Sunflower seeds, nautilus shells, the Parthenon — all follow my proportions.", "phi", 800);
+  queueSay("Phi 🌻: I am also the limit of Fibonacci ratios. I contain multitudes.", "phi", 900);
 }
 
 function startDebate() {
-  say("Pi 🥧: Clearly I’m the most important—without me, circles wouldn’t exist!", "pi");
-  say("e 📈: Excuse me? Without me, calculus and compound interest collapse!", "e");
-  say("Phi 🌻: Gentlemen, without me, the Parthenon would look like a shoebox.", "phi");
-
-  say("Pi 🥧: At least I’m delicious. People bake me into pies!", "pi");
-  say("e 📈: Delicious? You’re irrational! Literally.", "e");
-  say("Phi 🌻: And I’m irrational too, but at least I’m fashionable.", "phi");
+  queueSay("[ THE GREAT IRRATIONAL DEBATE BEGINS ]", "system", 0);
+  queueSay("Pi 🥧: Let's settle this once and for all — I am the most important number.", "pi", 600);
+  queueSay("e 📈: That's adorable, π. Without me, calculus breaks. Everything breaks.", "e", 700);
+  queueSay("Phi 🌻: Gentlemen. Without me, art, architecture, and nature look wrong.", "phi", 700);
+  queueSay("Pi 🥧: At least people memorize me competitively. Millions know my digits.", "pi", 800);
+  queueSay("e 📈: Memorizing digits is not understanding. I am felt in every growth curve.", "e", 700);
+  queueSay("Phi 🌻: I literally appear in your DNA and the proportions of your own face.", "phi", 800);
+  queueSay("Pi 🥧: ...Okay that one landed.", "pi", 600);
+  queueSay("e 📈: Admitted.", "e", 400);
 }
 
 function addSqrt2() {
-  say("√2 🪜: Hey folks, mind if I cut in?", "sqrt2");
-  say("√2 🪜: My value is " + sqrt2 + " and I’m irrational too—", "sqrt2");
-  say("√2 🪜: But unlike you three, I’m practical. I build right angles!", "sqrt2");
+  queueSay("√2 📐 crashes through the wall...", "system", 0);
+  queueSay("√2 📐: EXCUSE ME. Did someone forget about me??", "sqrt2", 500);
+  queueSay("√2 📐: I'm 1.41421356... and I was the FIRST irrational number ever discovered.", "sqrt2", 700);
+  queueSay("√2 📐: The Pythagoreans literally threw someone overboard for discovering me.", "sqrt2", 800);
+  queueSay("Pi 🥧: Oh come on, nobody talks about you at parties.", "pi", 700);
+  queueSay("√2 📐: Every right triangle. Every square diagonal. Every time someone uses Pythagoras — that's me.", "sqrt2", 800);
+  queueSay("e 📈: He does have a point. You're technically the elder here.", "e", 700);
+  queueSay("Phi 🌻: Respect, √2. You blazed the irrational trail for all of us.", "phi", 700);
+}
 
-  say("Pi 🥧: Who invited the square root?", "pi");
-  say("e 📈: He’s got a point… without him, geometry falls apart.", "e");
-  say("Phi 🌻: And he’s symmetrical. I like his style.", "phi");
+function eulerMoment() {
+  queueSay("[ ✨ EULER'S IDENTITY MOMENT ✨ ]", "system", 0);
+  queueSay("e 📈: Alright, everyone. I need to say something.", "e", 500);
+  queueSay("e 📈: There is an equation. e^(iπ) + 1 = 0.", "e", 700);
+  queueSay("Pi 🥧: ...I know. I'm in it too.", "pi", 500);
+  queueSay("e 📈: It contains e, π, i, 1, and 0. Five fundamental constants.", "e", 700);
+  queueSay("Pi 🥧: Euler connected us both to the imaginary unit in one perfect formula.", "pi", 800);
+  queueSay("Phi 🌻: I'm not in it, but honestly? That's just art. That's the most beautiful equation.", "phi", 900);
+  queueSay("√2 📐: Even I'm impressed. And I'm usually not impressed by anything.", "sqrt2", 800);
+  queueSay("[ e^(iπ) + 1 = 0 ] The most beautiful equation in mathematics.", "system", 700);
 }
 
 function resolution() {
-  say("Pi 🥧: Fine, maybe we’re all important.", "pi");
-  say("e 📈: Agreed. Math wouldn’t be the same without us.", "e");
-  say("Phi 🌻: Then let’s call it a draw—beauty, growth, circles, and right angles together!", "phi");
-  say("√2 🪜: Finally, some rational thinking… oh wait, none of us are rational!", "sqrt2");
+  queueSay("[ FINAL CURTAIN ]", "system", 0);
+  queueSay("Pi 🥧: Fine. Maybe we're all essential in different ways.", "pi", 600);
+  queueSay("e 📈: Growth and circles and beauty and diagonals — we need each other.", "e", 700);
+  queueSay("Phi 🌻: Mathematics is not a competition. It is a universe.", "phi", 700);
+  queueSay("√2 📐: And we were all discovered long before humanity understood why.", "sqrt2", 800);
+  queueSay("Pi 🥧: We're irrational.", "pi", 500);
+  queueSay("e 📈: Transcendental, even.", "e", 500);
+  queueSay("Phi 🌻: Infinite.", "phi", 500);
+  queueSay("√2 📐: And none of us can be written as a fraction. That's kind of beautiful.", "sqrt2", 700);
+  queueSay("[ END OF SHOW — THANK YOU FOR ATTENDING ]", "system", 800);
 }
-  const display = document.getElementById("display");
+
+// Calculator logic
+const display = document.getElementById("display");
 
 function press(val) {
+  if (display.value === "Error") display.value = "";
   display.value += val;
 }
 
-function clearDisplay() {
-  display.value = "";
-}
-
-function usePi() {
-  display.value += Math.PI;
-}
-
-function useE() {
-  display.value += Math.E;
-}
-
-function usePhi() {
-  display.value += (1 + Math.sqrt(5)) / 2;
-}
+function clearDisplay() { display.value = ""; }
+function usePi() { display.value += "3.14159265358979"; }
+function useE() { display.value += "2.71828182845905"; }
+function usePhi() { display.value += "1.61803398874989"; }
+function useSqrt2() { display.value += "1.41421356237310"; }
 
 function calculate() {
   try {
-    const result = eval(display.value);
-    say("🧮 Result: " + result, "sqrt2");
-    display.value = result;
+    const result = Function('"use strict"; return (' + display.value + ')')();
+    const rounded = Math.round(result * 1e10) / 1e10;
+    display.value = rounded;
+    if (rounded > 1000000) say("e 📈: That escalated exponentially!", "e");
+    else if (rounded === 0) say("Pi 🥧: We've achieved true nothingness. Fascinating.", "pi");
+    else if (rounded < 0) say("√2 📐: Into the negatives! Bold move.", "sqrt2");
   } catch {
-    say("🧮 Oops! Invalid math expression.", "sqrt2");
+    display.value = "Error";
+    say("Pi 🥧: Even I can't process that expression.", "pi");
   }
 }
-  if (result > 10) {
-  say("e 📈: That escalated quickly!", "e");
-} else {
-  say("Pi 🥧: Nice and simple!", "pi");
-}
-  function circleCalc() {
-  const r = parseFloat(document.getElementById("pi-input").value);
-  if (isNaN(r)) return;
 
+// Character calculators
+function circleCalc() {
+  const r = parseFloat(document.getElementById("pi-input").value);
+  const el = document.getElementById("pi-result");
+  if (isNaN(r) || r < 0) { el.textContent = "Enter a valid radius"; return; }
   const area = Math.PI * r * r;
-  say("Pi 🥧: Circle with radius " + r + " → area " + area, "pi");
+  const circ = 2 * Math.PI * r;
+  el.textContent = "Area: " + area.toFixed(4) + "\nCirc: " + circ.toFixed(4);
+  say("Pi 🥧: Radius " + r + " → Area = " + area.toFixed(4) + " | Circumference = " + circ.toFixed(4), "pi");
 }
 
 function growthCalc() {
   const x = parseFloat(document.getElementById("e-input").value);
-  if (isNaN(x)) return;
-
+  const el = document.getElementById("e-result");
+  if (isNaN(x)) { el.textContent = "Enter an exponent"; return; }
   const result = Math.exp(x);
-  say("e 📈: e^" + x + " = " + result, "e");
+  el.textContent = "e^" + x + " = " + result.toExponential(4);
+  say("e 📈: e^" + x + " = " + result.toExponential(4) + "  (growth factor)", "e");
 }
 
 function goldenCalc() {
   const a = parseFloat(document.getElementById("phi-input").value);
-  if (isNaN(a)) return;
-
-  const phi = (1 + Math.sqrt(5)) / 2;
-  const result = a * phi;
-
-  say("Phi 🌻: " + a + " × φ = " + result, "phi");
+  const el = document.getElementById("phi-result");
+  if (isNaN(a)) { el.textContent = "Enter a base number"; return; }
+  const b = a / phi;
+  const c = a * phi;
+  el.textContent = a + " / φ = " + b.toFixed(4) + "\n" + a + " × φ = " + c.toFixed(4);
+  say("Phi 🌻: Golden section of " + a + " → major: " + c.toFixed(4) + " | minor: " + b.toFixed(4), "phi");
 }
 
 function triangleCalc() {
-  const side = parseFloat(document.getElementById("sqrt-input").value);
-  if (isNaN(side)) return;
+  const s = parseFloat(document.getElementById("sqrt-input").value);
+  const el = document.getElementById("sqrt-result");
+  if (isNaN(s) || s < 0) { el.textContent = "Enter a side length"; return; }
+  const d = s * sqrt2;
+  el.textContent = "Diagonal: " + d.toFixed(4);
+  say("√2 📐: Side " + s + " → diagonal = " + d.toFixed(4) + "  (s × √2)", "sqrt2");
+}
 
-  const diag = side * Math.sqrt(2);
-  say("√2 🪜: diagonal = " + diag, "sqrt2");
+// Tab switching
+function switchTab(btn, tabId) {
+  document.querySelectorAll(".calc-tab").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".calc-panel").forEach(p => p.classList.remove("active"));
+  btn.classList.add("active");
+  document.getElementById(tabId).classList.add("active");
 }
 </script>
-
 </body>
 </html>
